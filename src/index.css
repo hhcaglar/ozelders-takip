@@ -1,0 +1,167 @@
+/* Global stiller — fontlar index.html'de <link> ile yüklenir (JS @import yerine) */
+:root {
+  --paper: #eef1f4;
+  --paper-card: #ffffff;
+  --ink: #1f2a37;
+  --navy: #1e3a5f;
+  --amber: #e3a008;
+  --sage: #3f8f5f;
+  --coral: #d64933;
+  --line: #dce2e8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  width: 100%;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: var(--ink);
+}
+
+input,
+select,
+textarea {
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  outline: none;
+  padding: 11px 13px;
+  background: #fff;
+  font-size: 14px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 4px rgba(30, 58, 95, 0.14);
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #c7cfd8;
+  border-radius: 8px;
+}
+
+@media (max-width: 760px) {
+  body {
+    overflow-x: hidden;
+  }
+}
+
+/* ---- Etkileşim cilası (v3) ---- */
+.dt-btn {
+  transition: transform 0.1s ease, box-shadow 0.2s ease, filter 0.15s ease;
+}
+.dt-btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(30, 58, 95, 0.3) !important;
+}
+.dt-btn:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.98);
+}
+.dt-btn:disabled {
+  cursor: default;
+}
+
+.dt-chip {
+  border: 1.5px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 7px 15px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+.dt-chip-active {
+  box-shadow: 0 3px 10px rgba(30, 58, 95, 0.25);
+}
+.dt-chip:hover {
+  border-color: var(--navy);
+}
+.dt-chip-active,
+.dt-chip-active:hover {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
+}
+
+.dt-card-hover {
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(30, 58, 95, 0.05);
+}
+.dt-card-hover:hover {
+  box-shadow: 0 10px 28px rgba(30, 58, 95, 0.11);
+  transform: translateY(-2px);
+}
+
+.dt-tabbtn {
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.dt-tabbtn:hover {
+  background: rgba(30, 58, 95, 0.07);
+}
+
+.dt-login-bg {
+  background:
+    radial-gradient(1100px 560px at 85% -10%, rgba(227, 160, 8, 0.16), transparent 60%),
+    radial-gradient(1000px 520px at -10% 110%, rgba(30, 58, 95, 0.2), transparent 55%),
+    linear-gradient(160deg, #eef1f4 0%, #dbe4ee 55%, #cfdcec 100%);
+}
+
+.dt-side-btn {
+  transition: background 0.12s ease;
+}
+.dt-side-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+::selection {
+  background: rgba(227, 160, 8, 0.35);
+}
+
+/* ---- Rapor yazdırma (PDF olarak kaydet) ---- */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .dt-print-area,
+  .dt-print-area * {
+    visibility: visible;
+  }
+  .dt-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
