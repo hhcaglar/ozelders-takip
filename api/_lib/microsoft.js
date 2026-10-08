@@ -59,7 +59,9 @@ export function loginUrl() {
 
 /** Yapıştırılan yönlendirme adresinden (…oauth20_desktop.srf?code=…) kodu çıkarır. */
 export function extractCode(input) {
-  const text = String(input ?? '').trim()
+  const text = String(input ?? '')
+    .trim()
+    .replace(/^["'<]+|["'>]+$/g, '') // tırnak/açılı ayraçla yapıştırılmış olabilir
   if (!text) throw new MicrosoftError('Adres boş. Giriş sonrası açılan sayfanın adresini yapıştırın.')
   if (/^https?:\/\//i.test(text)) {
     let url
@@ -73,16 +75,31 @@ export function extractCode(input) {
       const description = url.searchParams.get('error_description') || error
       throw new MicrosoftError(`Microsoft girişi tamamlanmadı: ${description}`)
     }
+    // searchParams, %24 gibi kodlanmış karakterleri ($) kendiliğinden çözer
     const code = url.searchParams.get('code')
     if (!code) {
+      if (url.searchParams.get('removed') === 'true') {
+        throw new MicrosoftError(
+          'Microsoft, kodu adresten sildi (removed=true). Bu sık olur: “Adres hemen değişiyorsa” ipucundaki ' +
+            'adımlarla kodlu adresi Geliştirici Araçları → Ağ sekmesinden kopyalayın.'
+        )
+      }
       throw new MicrosoftError(
         'Adreste "code=" bulunamadı. Giriş tamamlandıktan sonra açılan BOŞ sayfanın adresini kopyalayın.'
       )
     }
     return code
   }
-  // Yalnızca kodun kendisi yapıştırılmış olabilir (ör. M.C5_BAY.2.U.xxxx)
-  if (/^[\w.!*$~-]{10,}$/.test(text)) return text
+  // Yalnızca kodun kendisi yapıştırılmış olabilir (ör. M.C5_BAY.2.U.xxxx$$)
+  let raw = text.replace(/^code=/i, '').split('&')[0]
+  if (raw.includes('%')) {
+    try {
+      raw = decodeURIComponent(raw)
+    } catch {
+      /* olduğu gibi dene */
+    }
+  }
+  if (/^[\w.!*$~-]{10,}$/.test(raw)) return raw
   throw new MicrosoftError('Geçersiz adres. Adres çubuğundaki adresin TAMAMINI kopyalayın.')
 }
 

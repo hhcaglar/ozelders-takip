@@ -84,6 +84,15 @@ gece 04:00'te oturumu taze tutmak için bir kontrol yapılır.
    (`https://login.live.com/oauth20_desktop.srf?code=…` ile başlar).
 3. Adresi kutuya yapıştırıp **Bağla** deyin. Kod birkaç dakika geçerlidir, hemen yapıştırın.
 
+> **Adres hemen `…?removed=true` oluyorsa** (Microsoft güvenlik için kodu adresten çok hızlı
+> silebilir), kodu bilgisayarda (Chrome/Edge) şöyle yakalayın:
+> 1. Giriş sekmesinde, şifreyi yazmadan **önce** **F12**'ye basın (Mac: ⌥⌘I).
+> 2. **Ağ (Network)** sekmesine geçin, **Günlüğü koru (Preserve log)** kutusunu işaretleyin.
+> 3. Girişi tamamlayın. Filtre kutusuna `code=` yazın, `oauth20_desktop.srf?code=…` satırı görünür.
+> 4. Satıra sağ tıklayın → **Kopyala → URL'yi kopyala** → DersTakip'teki kutuya yapıştırın.
+>
+> Adresteki `%24%24` gibi kodlanmış karakterler sorun değildir, DersTakip bunları kendisi çözer.
+
 ### 5) Öğrenciyi eşleştirin
 "Bu öğrenci Family Safety'de hangisi?" listesinden çocuğun hesabını seçip **Eşleştir** deyin.
 Bunu her öğrenci için bir kez yaparsınız.
@@ -106,6 +115,7 @@ düğmesini kullanabilirsiniz. Sonuç **"Son olaylar"** listesinde görünür.
 | İstek onaylanmadı, olaylarda "bugünkü ek süre hakkı kullanıldı" yazıyor | Günlük sınır doldu. Yarın otomatik onaylanır, isterseniz siz elle onaylayabilirsiniz. |
 | İstek hiç görünmüyor | Çocuğun hesabı doğru eşleşti mi? Family Safety'de o çocuk için süre sınırı açık mı? İstek gerçekten gönderildi mi (Family Safety uygulamanıza bildirim geldi mi)? |
 | "Giriş kodu geçersiz veya süresi dolmuş" | Kod tek kullanımlık ve kısa ömürlü. Girişi baştan yapıp yeni adresi hemen yapıştırın. |
+| "Microsoft, kodu adresten sildi (removed=true)" | 4. adımdaki **F12 → Ağ** yöntemiyle kodlu adresi kopyalayın. |
 
 ## Güvenlik ve gizlilik
 

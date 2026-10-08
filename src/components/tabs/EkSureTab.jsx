@@ -147,12 +147,65 @@ function Step({ n, children }) {
   )
 }
 
+// Microsoft bazen kodlu adresi saniyeden kısa sürede "?removed=true" yapar.
+// Güvenilir yol: Geliştirici Araçları → Ağ sekmesinden isteği kopyalamak.
+function CodeCaptureTip({ open, onToggle, highlight }) {
+  return (
+    <div style={{ marginTop: 10 }}>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--navy)', fontWeight: 700, fontSize: 12.5, textDecoration: 'underline' }}
+      >
+        Adres hemen “removed=true” oluyor mu? Kodu yakalamanın kesin yolu
+      </button>
+      {open && (
+        <div
+          style={{
+            marginTop: 8,
+            padding: '10px 12px',
+            borderRadius: 10,
+            background: highlight ? '#FFF7E6' : 'var(--paper)',
+            border: `1px solid ${highlight ? '#F0D9A8' : 'var(--line)'}`,
+            fontSize: 12.5,
+            lineHeight: 1.6,
+          }}
+        >
+          Microsoft, güvenlik için kodu adresten çok hızlı silebilir. O zaman bilgisayarda (Chrome / Edge):
+          <ol style={{ margin: '6px 0 0', paddingLeft: 20 }}>
+            <li>
+              Giriş sekmesinde, şifreyi yazmadan <b>önce</b> klavyeden <b>F12</b>'ye basın (Mac: ⌥⌘I).
+            </li>
+            <li>
+              Açılan panelde <b>Ağ (Network)</b> sekmesine geçin, <b>Günlüğü koru (Preserve log)</b> kutusunu işaretleyin.
+            </li>
+            <li>
+              Girişi tamamlayın. Paneldeki filtre kutusuna <b>code=</b> yazın;{' '}
+              <span style={{ fontFamily: 'ui-monospace, Menlo, Consolas, monospace' }}>oauth20_desktop.srf?code=…</span> satırı görünür.
+            </li>
+            <li>
+              Satıra sağ tıklayın → <b>Kopyala → URL'yi kopyala</b> (Copy → Copy URL) ve buraya yapıştırın.
+            </li>
+          </ol>
+          <div style={{ color: '#6B7684', marginTop: 4 }}>Telefonda bu panel yoktur; bu adımı bilgisayardan yapın.</div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ------------------------------------------------------------
 // Microsoft bağlantısı
 // ------------------------------------------------------------
 function ConnectionCard({ connection, busy, onConnect, onDisconnect }) {
   const [adres, setAdres] = useState('')
+  const [tipOpen, setTipOpen] = useState(false)
   const expired = connection?.status === 'yeniden_giris'
+  const removedPasted = /removed=true/i.test(adres) && !/[?&]code=/i.test(adres)
+  useEffect(() => {
+    if (removedPasted) setTipOpen(true)
+  }, [removedPasted])
 
   if (connection && !expired) {
     return (
@@ -230,10 +283,20 @@ function ConnectionCard({ connection, busy, onConnect, onDisconnect }) {
               style={{ flex: 1, minWidth: 220, fontSize: 13 }}
               onKeyDown={(e) => e.key === 'Enter' && adres.trim() && onConnect(adres)}
             />
-            <Button icon={Link2} disabled={!adres.trim() || busy === 'connect'} onClick={() => onConnect(adres)}>
+            <Button
+              icon={Link2}
+              disabled={!adres.trim() || removedPasted || busy === 'connect'}
+              onClick={() => onConnect(adres)}
+            >
               {busy === 'connect' ? 'Bağlanıyor…' : 'Bağla'}
             </Button>
           </div>
+          {removedPasted && (
+            <Banner tone="warn" style={{ marginTop: 8 }}>
+              Bu adreste kod yok: Microsoft kodu silmiş (removed=true). Aşağıdaki adımlarla kodlu adresi yakalayın.
+            </Banner>
+          )}
+          <CodeCaptureTip open={tipOpen} onToggle={() => setTipOpen((v) => !v)} highlight={removedPasted} />
         </Step>
       </div>
       <div style={{ ...muted, marginTop: 12, display: 'flex', gap: 6 }}>

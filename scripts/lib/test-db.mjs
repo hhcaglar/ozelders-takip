@@ -79,6 +79,9 @@ export async function startTestDb({ port = 54000 + Math.floor(Math.random() * 90
     database: 'postgres',
     max: 6,
   })
+  // Kapanışta sunucu boştaki bağlantıları sonlandırınca gelen hatalar süreci
+  // çökertmesin (pg-pool'un bilinen davranışı; test sonuçlarını etkilemez)
+  pool.on('error', () => {})
 
   await pool.query(SUPABASE_MOCK)
   await pool.query(readFileSync(path.join(root, 'supabase/schema.sql'), 'utf8'))
