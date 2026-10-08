@@ -1,28 +1,39 @@
 // Çalışma zamanı duman testi: uygulamayı jsdom'da mount eder,
 // demo verinin ve ana ekranın render edildiğini doğrular.
 import { JSDOM } from 'jsdom'
-import { execFileSync } from 'node:child_process'
-import { readFileSync, writeFileSync } from 'node:fs'
+import { build } from 'esbuild'
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 
 const root = path.resolve(import.meta.dirname, '..')
 
-// 1) entry'yi tek dosyaya derle
-execFileSync(
-  process.execPath,
-  [path.join(root, 'node_modules/esbuild/install.js')].length ? [] : [],
-  { stdio: 'ignore' }
-)
-execFileSync(path.join(root, 'node_modules/.bin/esbuild'), [
-  'scripts/smoke-entry.jsx',
-  '--bundle',
-  '--format=iife',
-  '--platform=browser',
-  '--jsx=automatic',
-  '--define:process.env.NODE_ENV="production"',
-  '--define:import.meta.env={}',
-  `--outfile=scripts/smoke-bundle.js`,
-], { cwd: root, stdio: 'inherit' })
+// 1) entry'yi tek dosyaya derle. Vite'ın "?raw" içe aktarmasını (dosyayı metin
+//    olarak alma) esbuild'e küçük bir eklentiyle öğretiyoruz.
+const rawPlugin = {
+  name: 'raw',
+  setup(b) {
+    b.onResolve({ filter: /\?raw$/ }, (args) => ({
+      path: path.resolve(args.resolveDir, args.path.replace(/\?raw$/, '')),
+      namespace: 'raw',
+    }))
+    b.onLoad({ filter: /.*/, namespace: 'raw' }, (args) => ({
+      contents: readFileSync(args.path, 'utf8'),
+      loader: 'text',
+    }))
+  },
+}
+await build({
+  absWorkingDir: root,
+  entryPoints: ['scripts/smoke-entry.jsx'],
+  bundle: true,
+  format: 'iife',
+  platform: 'browser',
+  jsx: 'automatic',
+  define: { 'process.env.NODE_ENV': '"production"', 'import.meta.env': '{}' },
+  outfile: 'scripts/smoke-bundle.js',
+  plugins: [rawPlugin],
+  logLevel: 'warning',
+})
 
 // 2) jsdom ortamını kur
 const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', {
@@ -31,7 +42,8 @@ const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></
 })
 globalThis.window = dom.window
 globalThis.document = dom.window.document
-globalThis.navigator = dom.window.navigator
+// Node 21+ globalThis.navigator salt-okunur getter'dır → defineProperty ile ez
+Object.defineProperty(globalThis, 'navigator', { value: dom.window.navigator, configurable: true, writable: true })
 globalThis.localStorage = dom.window.localStorage
 globalThis.HTMLElement = dom.window.HTMLElement
 globalThis.Element = dom.window.Element
@@ -119,6 +131,39 @@ try {
   interact.push(['Ödev filtre çipleri (v3)', body().includes('Geciken') && body().includes('Bekleyen')])
   interact.push(['Görsel cila sınıfı dt-btn (v3)', document.querySelector('.dt-btn') !== null])
   interact.push(['Öğrenci sayacı (v3)', document.body.textContent.includes('ÖĞRENCİLER (2)')])
+
+  // v3.3 — yerel modda kayıt (önceden upsertStudent eksikti → hata bandı çıkıyordu)
+  const statusSelects = [...document.querySelectorAll('select')].filter((el) => [...el.options].some((o) => o.value === 'teslim'))
+  const target = statusSelects.find((el) => el.value === 'bekliyor')
+  const targetTitle = target?.closest('.dt-card-hover')?.querySelector('div > div')?.textContent || ''
+  if (target) {
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value').set
+    setter.call(target, 'teslim')
+    target.dispatchEvent(new window.Event('change', { bubbles: true }))
+  }
+  await wait(1100) // otomatik kayıt 800 ms gecikmeli
+  interact.push(['Yerel modda ödev durumu kaydedilir (hata bandı yok)', Boolean(target) && !body().includes('kaydedilemedi')])
+  const stored = JSON.parse(window.localStorage.getItem('ders-takip:data-v2') || '{}')
+  const storedHw = (stored.students || []).flatMap((st) => st.homeworks || []).find((h) => targetTitle.startsWith(h.title))
+  interact.push(['Değişiklik localStorage\'a yazıldı', storedHw?.status === 'teslim'])
+
+  // v3.3 — Ek Süre (Microsoft Family Safety) sekmesi
+  interact.push(['Ek Süre sekmesi öğretmende görünür', [...document.querySelectorAll('nav button')].some((b) => b.textContent.includes('Ek Süre'))])
+  clickByText('Ek Süre'); await wait(200)
+  interact.push(['Ek Süre: başlık', body().includes('Microsoft Family Safety')])
+  interact.push(['Ek Süre: yerel modda önizleme uyarısı', body().includes('Önizleme:')])
+  interact.push(['Ek Süre: nasıl çalıştığı anlatılıyor', body().includes('Daha fazla süre iste') && body().includes('bir seferlik')])
+  interact.push(['Ek Süre: hak listesi ve istatistikler', body().includes('Ek süre hakları') && body().includes('Kullanılabilir hak')])
+  interact.push(['Ek Süre: kurallar (günde en fazla)', body().includes('Kurallar') && body().includes('Günde en fazla')])
+  interact.push(['Ek Süre: sunucu kurulum kartı', body().includes('Sunucu kurulumu')])
+  clickByText('Sunucu kurulumu'); await wait(150)
+  const sqlBox = document.querySelector('textarea')
+  interact.push(['Kurulum: zamanlayıcı SQL\'i site adresiyle dolduruldu', Boolean(sqlBox) && sqlBox.value.includes("'http://localhost'") && !sqlBox.value.includes("'__GIZLI_ANAHTAR__'")])
+  clickByText('Şimdi kontrol et'); await wait(150)
+  interact.push(['Önizlemede işlem yapılmaz, kullanıcı bilgilendirilir', body().includes('Önizleme modunda işlem yapılmaz')])
+  clickByText('Veli'); await wait(150)
+  interact.push(['Veli görünümünde Ek Süre sekmesi yok', ![...document.querySelectorAll('nav button')].some((b) => b.textContent.includes('Ek Süre'))])
+  clickByText('Öğretmen'); await wait(150)
 } catch (e) {
   interact.push(['Etkileşim akışı hatasız', false])
   console.error('ETKİLEŞİM HATASI:', e.message)

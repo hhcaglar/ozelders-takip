@@ -6,3 +6,5 @@ dist/
 .vercel
 *.log
 .DS_Store
+scripts/smoke-bundle.js
+scripts/ek-sure-ui-bundle.js

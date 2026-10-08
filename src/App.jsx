@@ -10,6 +10,7 @@ import {
   GraduationCap,
   Menu,
   LogOut,
+  Gamepad2,
 } from 'lucide-react'
 import { useAuth } from './lib/auth.jsx'
 import { localBackend, loadUiPrefs, saveUiPrefs } from './lib/localBackend.js'
@@ -31,6 +32,7 @@ import { PlanTab } from './components/tabs/PlanTab.jsx'
 import { TipsTab } from './components/tabs/TipsTab.jsx'
 import { ReportTab } from './components/tabs/ReportTab.jsx'
 import { OverviewTab } from './components/tabs/OverviewTab.jsx'
+import { EkSureTab } from './components/tabs/EkSureTab.jsx'
 
 const SAVE_ERROR_LOCAL = 'Yerel depolamaya kaydedilemedi (gizli pencere veya dolu depolama olabilir).'
 const SAVE_ERROR_CLOUD = 'Sunucuya kaydedilemedi — bağlantını kontrol et.'
@@ -79,6 +81,9 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [confirmState, setConfirmState] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  // Her başarılı otomatik kayıttan sonra artar: sunucuda oluşan veriler
+  // (ör. ödev teslimiyle açılan ek süre hakkı) sekmelerde yenilensin diye.
+  const [saveVersion, setSaveVersion] = useState(0)
 
   const savedDocsRef = useRef(new Map())
 
@@ -182,6 +187,7 @@ export default function App() {
         savedDocsRef.current.delete(id)
       }
       setSaveError('')
+      setSaveVersion((v) => v + 1)
     } catch (e) {
       const detail = e?.message ?? e?.error_description ?? ''
       setSaveError((isCloud ? SAVE_ERROR_CLOUD : SAVE_ERROR_LOCAL) + (detail ? ` (${detail})` : ''))
@@ -325,6 +331,7 @@ export default function App() {
     { id: 'konular', label: 'Konular', icon: BookOpen },
     { id: 'sinavlar', label: 'Sınavlar', icon: TrendingUp },
     { id: 'odevler', label: 'Ödevler', icon: ClipboardList },
+    ...(isTeacher ? [{ id: 'eksure', label: 'Ek Süre', icon: Gamepad2 }] : []),
     { id: 'plan', label: 'Haftalık Plan', icon: CalendarDays },
     { id: 'oneriler', label: 'Öneriler', icon: Lightbulb },
     ...(isTeacher ? [{ id: 'rapor', label: 'Rapor', icon: MessageCircle }] : []),
@@ -531,7 +538,11 @@ export default function App() {
                     student={activeStudent}
                     isTeacher={isTeacher}
                     update={(u) => updateStudent(activeStudent.id, u)}
+                    saveVersion={saveVersion}
                   />
+                )}
+                {tab === 'eksure' && isTeacher && (
+                  <EkSureTab student={activeStudent} saveVersion={saveVersion} />
                 )}
                 {tab === 'plan' && (
                   <PlanTab

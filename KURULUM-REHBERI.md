@@ -116,3 +116,11 @@ curl -s https://veli.corluders.com/assets/ABOVE_JS_FILE | grep -c supabase
 
 - **Öğretmen (siz):** siteye öğretmen girişi → öğrenci ekle/düzenle → veli kodunu paylaş → Rapor sekmesinden veliye WhatsApp ile özet gönder.
 - **Veli:** siteye gir → Veli sekmesi → erişim kodu → çocuğunun konu/ödev/sınav durumunu takip et (salt-okunur).
+
+---
+
+## 🎮 İsteğe bağlı: Ek Süre (Microsoft Family Safety)
+
+Ödev "Teslim edildi" olunca öğrenciye bir seferlik +1 saat ek süre vermek için
+**[EK-SURE-REHBERI.md](EK-SURE-REHBERI.md)** dosyasındaki adımları izleyin. Toplam ~10 dakika sürer.
+Uygulamadaki **Ek Süre → Sunucu kurulumu** bölümü de aynı adımları sizin değerlerinizle gösterir.

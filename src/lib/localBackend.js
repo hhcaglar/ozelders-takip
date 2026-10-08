@@ -33,6 +33,13 @@ export const localBackend = {
     }
   },
 
+  // App.jsx her iki arka planda da upsertStudent çağırır (dataService ile aynı arayüz).
+  // v3'te burada yalnızca saveStudent vardı; yerel modda kayıtlar hata veriyordu.
+  async upsertStudent(doc) {
+    const ok = await safeSetFor(doc)
+    if (!ok) throw new Error('localStorage yazılamadı')
+  },
+
   async saveStudent(doc) {
     return safeSetFor(doc)
   },

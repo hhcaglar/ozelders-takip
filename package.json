@@ -1,7 +1,7 @@
 {
   "name": "ders-takip",
   "private": true,
-  "version": "3.2.0",
+  "version": "3.3.0",
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -9,7 +9,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:smoke": "node scripts/smoke-test.mjs",
+    "test:ek-sure": "node scripts/test-ek-sure-sql.mjs && node scripts/test-ek-sure-api.mjs && node scripts/test-ek-sure-zamanlayici.mjs && node scripts/test-ek-sure-ui.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.114.0",

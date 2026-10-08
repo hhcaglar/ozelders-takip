@@ -1,6 +1,34 @@
 # DersTakip v3 — Öğrenci/Veli Takip Sistemi
 
 
+## v3.3 yenilikleri — 🎮 Ek Süre (Microsoft Family Safety)
+
+- **Ödev teslim → bir seferlik +1 saat:** Bir ödev "Teslim edildi" yapılınca öğrenciye ek süre hakkı
+  oluşur. Çocuk bilgisayarda **"Daha fazla süre iste"** dediğinde sistem isteği otomatik onaylar.
+  Varsayılan kural günde en fazla 1 kez; fazla haklar sonraki günlere kalır.
+- Yeni **"Ek Süre"** sekmesi (yalnızca öğretmen): Microsoft bağlantısı, öğrenci eşleştirme, kurallar,
+  hak listesi, olay günlüğü ve adım adım **sunucu kurulumu**.
+- Ödevler sekmesinde teslim edilen ödevin yanında **"🎮 +1 saat · hak hazır / kullanıldı"** etiketi.
+- Sunucu tarafı: Vercel fonksiyonları (`api/`) + Supabase tetikleyici/RPC'ler + pg_cron zamanlayıcı.
+- Düzeltme: yerel modda (Supabase'siz) değişiklikler kaydedilemiyordu (`upsertStudent` eksikti).
+
+👉 Kurulum ve kullanım: **[EK-SURE-REHBERI.md](EK-SURE-REHBERI.md)**
+
+> ⚠️ v3.3'e geçiş: `supabase/schema.sql` dosyasını SQL Editor'de **tekrar** çalıştırın (idempotent).
+> Ek Süre özelliğini kullanacaksanız Vercel'e `SUPABASE_SERVICE_ROLE_KEY` ve `AILE_SENKRON_ANAHTARI`
+> ekleyip `supabase/ek-sure-zamanlayici.sql` ile zamanlayıcıyı kurun (rehberde adım adım).
+> Bu özelliği kullanmayacaksanız ek bir şey yapmanıza gerek yok; site eskisi gibi çalışır.
+
+### Ortam değişkenleri
+
+| Değişken | Nerede | Zorunlu mu? |
+|---|---|---|
+| `VITE_SUPABASE_URL` | Vercel (tarayıcıya gömülür) | Bulut modu için evet |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Vercel (tarayıcıya gömülür) | Bulut modu için evet |
+| `SUPABASE_SERVICE_ROLE_KEY` | Vercel (**yalnızca sunucu**) | Yalnızca Ek Süre için |
+| `AILE_SENKRON_ANAHTARI` | Vercel (**yalnızca sunucu**) + Supabase Vault | Yalnızca Ek Süre için |
+
+
 ## v3 yenilikleri
 
 - **Veli kayıt sistemi:** veli artık hesap açabiliyor (ad + e-posta + şifre + öğretmen erişim kodu).
@@ -84,7 +112,14 @@ npm run dev
 ```
 ├── index.html              # meta, OG, font linkleri, favicon
 ├── vercel.json             # cache + güvenlik header'ları + SPA rewrite
-├── supabase/schema.sql     # tablolar + RLS + veli RPC
+├── supabase/schema.sql     # tablolar + RLS + veli RPC + Ek Süre (bölüm 6)
+├── supabase/ek-sure-zamanlayici.sql  # pg_cron: dakikada bir /api/aile-senkron
+├── api/                    # Vercel sunucu fonksiyonları (Ek Süre)
+│   ├── aile-baglan.js      # Microsoft girişi → belirteç (yalnızca sunucuda saklanır)
+│   ├── aile-cocuklar.js    # Family Safety aile üyeleri
+│   ├── aile-senkron.js     # bekleyen süre isteklerini haklara göre onaylar
+│   ├── aile-durum.js       # kurulum durumu (gizli değer dönmez)
+│   └── _lib/               # microsoft.js · senkron.js · sunucu.js
 ├── public/                 # favicon.svg, robots.txt
 └── src/
     ├── main.jsx            # giriş
@@ -103,5 +138,6 @@ npm run dev
         ├── StudentHeader.jsx   # istatistik şeridi
         ├── LoginScreen.jsx     # öğretmen/veli girişi
         ├── NetChart.jsx        # recharts (lazy-loaded)
-        └── tabs/               # Konular, Sınavlar, Ödevler, Plan, Öneriler, Rapor
+        ├── EkSureKurulumKarti.jsx # Ek Süre sunucu kurulum adımları
+        └── tabs/               # Konular, Sınavlar, Ödevler, Ek Süre, Plan, Öneriler, Rapor
 ```
