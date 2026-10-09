@@ -292,6 +292,14 @@ export function rehberlikRaporuUret(
       `Hedef puandan net karşılığına dönüşüm yaklaşıktır. ÖSYM ve MEB gerçek hesaplamada ham puanı standart puana ` +
         `(T-puan) çevirir; bu dönüşüm sınav popülasyonunun ortalamasına ve standart sapmasına bağlıdır ve sınavdan ` +
         `önce bilinemez. Bu rapordaki puan ve sıralama değerleri yön gösterici eşiklerdir, resmî hesap değildir.`,
+      // AYT'de puan yalnızca AYT netinden türetilir; TYT katkısı bu panelde ölçülmüyor.
+      ...(ogrenci.sinavTuru === "AYT"
+        ? [
+            `Önemli: Bu rapordaki puan ve sıralama yalnızca AYT netinden türetilmiştir. YKS yerleştirme puanı, ` +
+              `TYT ve AYT puanlarının ağırlıklı toplamıdır ve TYT sonucu bu hesapta yer almaz. Adayın TYT sonucu ` +
+              `ayrıca değerlendirilmelidir; burada görünen puan YKS yerleştirme puanı değildir.`,
+          ]
+        : []),
       yorumKaynakNotu(yorumlar),
     ],
   });

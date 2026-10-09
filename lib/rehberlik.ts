@@ -151,7 +151,11 @@ export function rehberlikRaporu(
   if (tahmin) {
     oneriler.push(
       `Mevcut netin yaklaşık ${puan} puana ve kaba bir tahminle ${tahmin.toLocaleString("tr-TR")} sıralamaya karşılık geliyor.` +
-        (sira ? ` Hedef sıralaman ${sira.toLocaleString("tr-TR")}.` : ""),
+        (sira ? ` Hedef sıralaman ${sira.toLocaleString("tr-TR")}.` : "") +
+        // AYT puanı tek başına YKS yerleştirme puanı değildir; TYT katkısı ayrıca girer.
+        (ogrenci.sinavTuru === "AYT"
+          ? " Bu değer yalnızca AYT netinden türetilmiştir; YKS yerleştirme puanı TYT ve AYT puanlarının ağırlıklı toplamıdır, TYT sonucun buraya dâhil değil."
+          : ""),
     );
   }
 

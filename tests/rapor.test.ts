@@ -182,3 +182,28 @@ test("tek sınavlı öğrencide kıyas cümlesi 'ilk sınav' der, çökmez", () 
   assert.ok(!rapor.duzMetin.includes("undefined"));
   assert.equal(netTrendi(sinavlar).length, 1);
 });
+
+/**
+ * AYT puanı tek başına YKS yerleştirme puanı değildir: gerçek puan TYT ve AYT
+ * puanlarının ağırlıklı toplamıdır. Rapor bu ayrımı söylemezse öğrenci AYT
+ * netinden türetilen sayıyı yerleştirme puanı sanır.
+ */
+test("rapor: AYT'de TYT katkısının dahil olmadığı açıkça söylenir, TYT'de söylenmez", () => {
+  const aytSinavlari = sinavlariUret("AYT", 3);
+  const aytRapor = rehberlikRaporuUret(ogrenci({ sinavTuru: "AYT", aytAlani: "SAY" }), aytSinavlari, null);
+  assert.ok(aytRapor);
+  const aytMetin = duzMetneCevir(aytRapor!);
+  assert.match(aytMetin, /YKS yerleştirme puanı/);
+  assert.match(aytMetin, /yalnızca AYT netinden türetilmiştir/);
+  assert.match(aytMetin, /TYT sonucu bu hesapta yer almaz/);
+
+  const tytSinavlari = sinavlariUret("TYT", 3);
+  const tytRapor = rehberlikRaporuUret(ogrenci({ sinavTuru: "TYT" }), tytSinavlari, null);
+  assert.ok(tytRapor);
+  const tytMetin = duzMetneCevir(tytRapor!);
+  // TYT öğrencisi için bu uyarı anlamsız; gereksiz yere eklenmemeli.
+  assert.ok(
+    !tytMetin.includes("YKS yerleştirme puanı, TYT ve AYT"),
+    "TYT raporunda AYT uyarısı var",
+  );
+});
