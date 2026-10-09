@@ -39,25 +39,41 @@ const SIRALAMA_EGRISI: Egriler = [
   [240, 1400000], [200, 1700000],
 ];
 
+/**
+ * Eğriler x eksenine göre ARTAN sıralı okunur. SIRALAMA_EGRISI okunabilirlik için
+ * puan azalacak biçimde (500 → 200) yazılmıştır; bu yüzden okumadan önce yön
+ * normalleştirilir. Normalleştirme olmazsa "x <= egri[0][0]" koruması 500'ün
+ * altındaki her puanı ilk satıra düşürür ve sıralama hep 100 döner.
+ */
+function artan(egri: Egriler): Egriler {
+  return egri[0][0] <= egri[egri.length - 1][0] ? egri : [...egri].reverse();
+}
+
 function egridenOku(egri: Egriler, x: number): number {
-  if (x <= egri[0][0]) return egri[0][1];
-  const son = egri[egri.length - 1];
+  // Sonlu olmayan girdide uç değer uydurulmaz: NaN net "500 puan" gibi
+  // yanıltıcı bir sonuca dönüşmesin diye NaN olarak ilerler.
+  if (!Number.isFinite(x)) return NaN;
+  const e = artan(egri);
+  if (x <= e[0][0]) return e[0][1];
+  const son = e[e.length - 1];
   if (x >= son[0]) return son[1];
-  for (let i = 1; i < egri.length; i++) {
-    const [x0, y0] = egri[i - 1];
-    const [x1, y1] = egri[i];
+  for (let i = 1; i < e.length; i++) {
+    const [x0, y0] = e[i - 1];
+    const [x1, y1] = e[i];
     if (x <= x1) return y0 + ((x - x0) * (y1 - y0)) / (x1 - x0);
   }
   return son[1];
 }
 
 function egriyiTersCevir(egri: Egriler, y: number): number {
-  if (y <= egri[0][1]) return egri[0][0];
-  const son = egri[egri.length - 1];
+  if (!Number.isFinite(y)) return NaN;
+  const e = artan(egri);
+  if (y <= e[0][1]) return e[0][0];
+  const son = e[e.length - 1];
   if (y >= son[1]) return son[0];
-  for (let i = 1; i < egri.length; i++) {
-    const [x0, y0] = egri[i - 1];
-    const [x1, y1] = egri[i];
+  for (let i = 1; i < e.length; i++) {
+    const [x0, y0] = e[i - 1];
+    const [x1, y1] = e[i];
     if (y <= y1) return x0 + ((y - y0) * (x1 - x0)) / (y1 - y0);
   }
   return son[0];
@@ -94,7 +110,9 @@ export function puandanNet(sinavTuru: Sinav["sinavTuru"], puan: number, sinav?: 
 
 /** Puandan kaba sıralama tahmini. */
 export function tahminiSiralama(puan: number): number | null {
-  if (puan < 200 || puan > 500) return null;
+  // NaN için "puan < 200" ve "puan > 500" ikisi de false döner; koruma
+  // eklenmezse NaN tablonun son satırına düşüp 100 (en iyi derece) üretir.
+  if (!Number.isFinite(puan) || puan < 200 || puan > 500) return null;
   return Math.round(egridenOku(SIRALAMA_EGRISI, puan));
 }
 

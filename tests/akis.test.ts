@@ -358,3 +358,43 @@ test("kazanım kataloğu AYT derslerini de kapsıyor", () => {
     assert.ok(k.length >= 5, `${d.kod} için kazanım sayısı az: ${k.length}`);
   }
 });
+
+test("AYT akışı alan dersleriyle uçtan uca çalışır", () => {
+  const sinavlar = sinavlariUret("AYT", 3);
+  const ogrenci = ogrenciFiksturu({ sinavTuru: "AYT", hedefPuan: 420 });
+  const beklenenDersler = new Set(derslerOf("AYT").map((d) => d.kod));
+
+  const analiz = sinavAnalizi(sinavlar[0]);
+  assert.equal(analiz.dersler.length, derslerOf("AYT").length);
+  assert.equal(analiz.toplamSoru, derslerOf("AYT").reduce((t, d) => t + d.soruSayisi, 0));
+  assert.ok(analiz.dersler.every((d) => beklenenDersler.has(d.ders.kod)));
+  assert.ok(analiz.netTavanOrani > 0 && analiz.netTavanOrani <= 1);
+
+  // Sayısal ve sözel alan dersleri birlikte ölçülmüş olmalı.
+  const kodlar = new Set(analiz.dersler.map((d) => d.ders.kod));
+  assert.ok(kodlar.has("AYT_MAT") && kodlar.has("AYT_EDB"));
+
+  const kazanimlar = topluKazanimDurumu(sinavlar);
+  assert.ok(kazanimlar.length > 0);
+  assert.ok(kazanimlar.every((k) => k.kazanim.ders.startsWith("AYT_")));
+
+  const paket = rehberlikRaporu(ogrenci, sinavlar);
+  assert.ok(paket);
+  // AYT'de sıralama tahmini üretilir. 500'ün altındaki her puan için 100'e
+  // yapışan eski hataya karşı: gerçek bir sıralama 100'den büyük olmalı.
+  const sira = paket.rehberlik.tahminiSiralama;
+  assert.notEqual(sira, null);
+  assert.ok(sira! > 100, `AYT sıralama tahmini 100'e yapışmış: ${sira}`);
+
+  const program = calismaProgramiUret(ogrenci, kazanimlar, "AYT", {
+    baslangicTarihi: "2026-10-12",
+    haftaSayisi: 2,
+  });
+  assert.ok(program.bloklar.length > 0);
+  assert.ok(program.bloklar.every((b) => b.ders === "Genel" ||
+    derslerOf("AYT").some((d) => d.ad === b.ders)));
+
+  const ics = icsUret(program, ogrenci.ad);
+  assert.ok(ics.includes("BEGIN:VCALENDAR") && ics.includes("END:VCALENDAR"));
+  assert.equal(netTrendi(sinavlar).length, 3);
+});
