@@ -18,6 +18,7 @@ import OzetSekmesi from "./sekmeler/OzetSekmesi";
 import NetSekmesi from "./sekmeler/NetSekmesi";
 import KazanimSekmesi from "./sekmeler/KazanimSekmesi";
 import ProgramSekmesi from "./sekmeler/ProgramSekmesi";
+import OgrenciDuzenle from "./OgrenciDuzenle";
 
 const SEKMELER = [
   { id: "ozet", ad: "Özet & Yorum" },
@@ -71,6 +72,7 @@ export default function OgrenciPanel(veri: PanelVerisi) {
           </p>
         </div>
         <div className="yazdirma-gizle flex flex-wrap gap-2">
+          <OgrenciDuzenle ogrenci={ogrenci} />
           <Link
             href={`/ogrenci/${ogrenci.id}/rapor`}
             className="rounded-lg bg-vurgu px-3 py-1.5 text-sm font-medium text-white transition hover:bg-indigo-700"
