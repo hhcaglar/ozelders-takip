@@ -62,6 +62,21 @@ yalnızca eşikleri anlatır, veriyi anlatmaz.
 **Net.** `net = doğru − yanlış / bölen`. Bölen TYT ve AYT için 4, LGS için 3
 (yayınevi karşılaştırma raporlarının kullandığı pratik; MEB resmî LGS hesabında doğru götürülmez).
 
+**Soru sayıları ve AYT alanı.** TYT herkes için ortaktır (120 soru), LGS de öyle (90 soru).
+AYT ise **alana göre değişir**: her aday kendi alanının iki testini çözer ve toplam **80 soru**
+cevaplar. Bu yüzden öğrenci kaydedilirken AYT alanı seçilir ve ders kümesi ona göre kurulur.
+
+| Alan | Çözülen testler | Toplam |
+| --- | --- | --- |
+| Sayısal | Matematik 40 + Fen Bilimleri 40 (Fizik 14, Kimya 13, Biyoloji 13) | 80 |
+| Eşit ağırlık | Matematik 40 + Edebiyat-Sosyal-1 40 (Edebiyat 24, Tarih-1 10, Coğrafya-1 6) | 80 |
+| Sözel | Edebiyat-Sosyal-1 40 + Sosyal Bilimler-2 40 (Edebiyat 24, Tarih-1 10, Coğrafya-1 6, Tarih-2 11, Coğrafya-2 11, Felsefe Grubu 12, DKAB 6) | 80 |
+
+Tarih ve Coğrafya tek branş kartı olarak tutulur; soru sayısı alana göre değişir (Eşit ağırlıkta
+yalnızca -1 testleri, Sözelde -1 ve -2 birlikte). Kazanım kataloğu bu yüzden bölünmez ve aynı
+kazanım iki kez sayılmaz. Sözel alanın DKAB testi için katalogda kazanım bulunmuyor: neti ölçülür
+ama kazanım eşleştirmesi yapılmaz.
+
 **Kazanım ustalığı.** `doğru / (doğru + yanlış + boş)` — boş bırakılan soru da öğrenme eksiği sayılır.
 Birden çok sınav birleştirilirken yakın tarihli sınavlar üstel olarak daha ağır basar (yarılanma ≈ 3 sınav).
 
