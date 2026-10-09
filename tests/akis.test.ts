@@ -4,9 +4,9 @@ import { derslerOf } from "../lib/data/dersler";
 import { kazanimlarOf } from "../lib/data/kazanimlar";
 import { kazanimDurumlari, sinavAnalizi, sinavNet, topluKazanimDurumu, netTrendi } from "../lib/analysis";
 import { sinavYorumu } from "../lib/yorum";
-import { rehberlikRaporu, oncelikliKazanimlar } from "../lib/rehberlik";
+import { rehberlikRaporu, oncelikliKazanimlar, rehberlikOzetSatiri } from "../lib/rehberlik";
 import { puandanNet, nettenPuan } from "../lib/rehberlik-core";
-import { calismaProgramiUret, gunlereGoreGrupla, icsUret, oncelikKuyrugu } from "../lib/plan";
+import { calismaProgramiUret, gunlereGoreGrupla, icsUret, oncelikKuyrugu, tipAdi } from "../lib/plan";
 import { demoAdapter, demoKarnelerUret } from "../lib/okulizyon/demo";
 import { VARSAYILAN_BAGLANTI } from "../lib/db";
 import { karneListesiHazirla } from "../lib/okulizyon/import";
@@ -397,4 +397,25 @@ test("AYT akışı alan dersleriyle uçtan uca çalışır", () => {
   const ics = icsUret(program, ogrenci.ad);
   assert.ok(ics.includes("BEGIN:VCALENDAR") && ics.includes("END:VCALENDAR"));
   assert.equal(netTrendi(sinavlar).length, 3);
+});
+
+test("tipAdi tabloda olmayan tipte undefined sızmaz", () => {
+  for (const t of ["konu", "test", "tekrar", "deneme", "yanlis-analizi"] as const) {
+    assert.ok(tipAdi(t).length > 0, `${t} için boş ad`);
+  }
+  // lib/rapor.ts genişletilmiş anahtarla çağırabiliyor; "undefined" metne sızmamalı.
+  const bilinmeyen = tipAdi("olmayan-tip" as never);
+  assert.equal(bilinmeyen, "olmayan-tip");
+  assert.ok(!bilinmeyen.includes("undefined"));
+});
+
+test("rehberlikOzetSatiri sınav yokken ölçülmüş sonuç gibi görünmez", () => {
+  const satir = rehberlikOzetSatiri(ogrenciFiksturu(), []);
+  assert.ok(satir.includes("henüz sınav verisi yok"), satir);
+  assert.ok(!/0\.00 \/ \d+ net/.test(satir), `veri yokken net gösteriyor: ${satir}`);
+
+  const sinavlar = sinavlariUret("TYT", 2);
+  const dolu = rehberlikOzetSatiri(ogrenciFiksturu(), sinavlar);
+  assert.match(dolu, /\d+\.\d{2} \/ \d+ net/);
+  assert.ok(dolu.includes("450 puan hedefi"));
 });

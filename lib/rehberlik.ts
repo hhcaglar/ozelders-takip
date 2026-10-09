@@ -197,9 +197,13 @@ export function oncelikliKazanimlar(toplu: KazanimDurumu[], limit = 60): Kazanim
 
 /** Özet satırı — kartlar ve raporlar için. */
 export function rehberlikOzetSatiri(ogrenci: Ogrenci, sinavlar: Sinav[]): string {
-  const net = sinavlar.length ? sinavNet(sinavlar[sinavlar.length - 1]) : 0;
   const hedef = ogrenci.hedefPuan ? puandanNet(ogrenci.sinavTuru, ogrenci.hedefPuan) : null;
-  if (!hedef) return `${ogrenci.ad} — ${ogrenci.sinavTuru} — son net ${net.toFixed(2)}`;
+  const hedefMetni = hedef && Number.isFinite(hedef) ? ` (hedef ~${hedef.toFixed(0)} net)` : "";
+  // Sınav yokken "0.00 net" yazmak ölçülmüş bir sonuç gibi okunur; veri
+  // olmadığını açıkça söylemek gerekir.
+  if (!sinavlar.length) return `${ogrenci.ad} — ${ogrenci.sinavTuru} — henüz sınav verisi yok${hedefMetni}`;
+  const net = sinavNet(sinavlar[sinavlar.length - 1]);
+  if (!hedef || !Number.isFinite(hedef)) return `${ogrenci.ad} — ${ogrenci.sinavTuru} — son net ${net.toFixed(2)}`;
   return `${ogrenci.ad} — ${ogrenci.sinavTuru} — ${net.toFixed(2)} / ${hedef.toFixed(0)} net (${ogrenci.hedefPuan} puan hedefi)`;
 }
 

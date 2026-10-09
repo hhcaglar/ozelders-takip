@@ -7,6 +7,7 @@ import { gunlereGoreGrupla, tipAdi } from "./plan";
 import { uzunTarih, kisaTarih } from "./tarih";
 import { yuzdeBulunma, yuzdeYonelik } from "./dilbilgisi";
 import type {
+  BlokTipi,
   CalismaProgrami,
   KazanimDurumu,
   Ogrenci,
@@ -237,7 +238,7 @@ export function rehberlikRaporuUret(
   /* ── 6. Önerilen çalışma düzeni ────────────────────────────────── */
   if (program) {
     const gunler = gunlereGoreGrupla(program);
-    const tipDagilim = new Map<string, number>();
+    const tipDagilim = new Map<BlokTipi, number>();
     for (const b of program.bloklar) {
       tipDagilim.set(b.tip, (tipDagilim.get(b.tip) ?? 0) + b.dakika);
     }
@@ -256,7 +257,7 @@ export function rehberlikRaporuUret(
         `Blok dağılımı: ` +
           [...tipDagilim.entries()]
             .sort((a, b) => b[1] - a[1])
-            .map(([t, d]) => `${tipAdi(t as never)} ${(d / 60).toFixed(1)} saat`)
+            .map(([t, d]) => `${tipAdi(t)} ${(d / 60).toFixed(1)} saat`)
             .join(", ") +
           `. Çalışma günleri: ${gunler.length} gün.`,
       ],

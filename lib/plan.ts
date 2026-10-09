@@ -348,14 +348,18 @@ export function oncelikKuyrugu(toplu: KazanimDurumu[], sinavTuru: SinavTuru): Ka
   return [...olculen, ...doldurma];
 }
 
+const TIP_ADLARI: Record<BlokTipi, string> = {
+  konu: "Konu çalışması",
+  test: "Soru çözümü",
+  tekrar: "Tekrar",
+  deneme: "Deneme",
+  "yanlis-analizi": "Yanlış analizi",
+};
+
 export function tipAdi(t: BlokTipi): string {
-  return {
-    konu: "Konu çalışması",
-    test: "Soru çözümü",
-    tekrar: "Tekrar",
-    deneme: "Deneme",
-    "yanlis-analizi": "Yanlış analizi",
-  }[t];
+  // lib/rapor.ts bu fonksiyonu genişletilmiş bir anahtar tipiyle çağırıyor;
+  // tabloda olmayan bir değer "undefined" olarak rapor metnine sızmasın.
+  return TIP_ADLARI[t] ?? String(t ?? "Diğer");
 }
 
 export const TIP_RENK: Record<BlokTipi, string> = {
