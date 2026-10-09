@@ -66,13 +66,19 @@ test("bağlantı ayarları saklanır ama şifre modeli hiç yoktur", () => {
   assert.equal(kayitli.aktif, true);
   assert.equal(db.baglantiAyari().baseUrl, "https://ornek.example");
   assert.equal(db.baglantiAyari().mod, "http");
-  // Varsayılanlar korunur (kısmi güncelleme diğer alanları silmez).
-  assert.equal(db.baglantiAyari().karneEndpoint, "/api/karne");
+  // Kısmi güncelleme diğer alanları silmez.
+  assert.equal(db.baglantiAyari().girisSayfasi, "/app2/ogrgiris");
+  // Doğrulanmamış uç noktalar uydurma bir değerle doldurulmaz.
+  assert.equal(db.baglantiAyari().girisEndpoint, "");
+  assert.equal(db.baglantiAyari().karneEndpoint, "");
   assert.ok(!("sifre" in (db.baglantiAyari() as unknown as Record<string, unknown>)), "şifre kalıcı modele sızmış");
 
   const sifirlanmis = db.baglantiKaydet({ ...db.VARSAYILAN_BAGLANTI });
   assert.equal(sifirlanmis.aktif, false);
-  assert.equal(sifirlanmis.baseUrl, "");
+  // Sıfırlama doğrulanmış kök adresi korur, uydurma uç nokta üretmez.
+  assert.equal(sifirlanmis.baseUrl, "https://okulizyon.com");
+  assert.equal(sifirlanmis.girisEndpoint, "");
+  assert.equal(sifirlanmis.karneEndpoint, "");
 });
 
 test("çalışma programı diske yazılıp geri okunur", () => {

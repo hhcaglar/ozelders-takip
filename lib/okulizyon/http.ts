@@ -61,24 +61,43 @@ export const httpAdapter: OkulizyonAdapter = {
   async senkron(baglam: SenkronBaglami) {
     const { ayar, ogrenci, sifre } = baglam;
     if (!ayar.baseUrl) throw new Error("Bağlantı ayarlarında taban adres (base URL) boş.");
-    if (!ayar.karneEndpoint) throw new Error("Karne uç noktası (karne endpoint) tanımlanmamış.");
+    if (!ayar.girisEndpoint || !ayar.karneEndpoint) {
+      throw new Error(
+        "Giriş ve karne uç noktaları tanımlanmamış. Okulizyon'un belgelenmiş bir API'si olmadığı için bu iki adresi " +
+          "tarayıcıda okulizyon.com/app2/ogrgiris üstünden giriş yaparken ağ sekmesinden (XHR/Fetch istekleri) okuyup " +
+          "Bağlantı ekranına yazman gerekiyor. Adımlar Bağlantı sayfasında.",
+      );
+    }
 
     const taban = ayar.baseUrl.replace(/\/+$/, "");
     let jeton: string | null = null;
     let kurabiye: string | null = null;
 
     /* ── 1. Giriş ─────────────────────────────────────────────── */
-    if (ayar.girisEndpoint) {
+    {
+      // Okulizyon giriş formu üç kimlik sekmesi sunuyor; seçilen sekmeye göre tek kimlik
+      // alanı doldurulur, diğerleri boş gönderilir.
+      const kimlik = {
+        ogrenciNo: ayar.girisTipi === "ogrenciNo" ? ayar.ogrenciNo || ogrenci.okulizyonOgrenciNo || "" : "",
+        tcKimlikNo: ayar.girisTipi === "tcKimlikNo" ? ayar.tcKimlikNo : "",
+        telefon: ayar.girisTipi === "telefon" ? ayar.telefon : "",
+      };
+      if (!Object.values(kimlik).some(Boolean)) {
+        throw new Error(
+          `Giriş tipi "${ayar.girisTipi}" seçili ama karşılık gelen kimlik alanı boş. Bağlantı ekranından doldur.`,
+        );
+      }
       const girisGovde = {
-        ogrenciNo: ayar.ogrenciNo || ogrenci.okulizyonOgrenciNo,
-        tcKimlikNo: ayar.tcKimlikNo,
+        ...kimlik,
         sifre: sifre ?? "",
         il: ayar.il,
         ilce: ayar.ilce,
         kurum: ayar.kurum,
         sinif: ogrenci.sinifSeviyesi,
+        kk: ayar.kurumKodu,
       };
-      const girisCevap = await zamanAsimli(`${taban}${ayar.girisEndpoint}`, {
+      const kkSorgu = ayar.kurumKodu ? `?kk=${encodeURIComponent(ayar.kurumKodu)}` : "";
+      const girisCevap = await zamanAsimli(`${taban}${ayar.girisEndpoint}${kkSorgu}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify(girisGovde),

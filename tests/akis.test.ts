@@ -8,6 +8,7 @@ import { rehberlikRaporu, oncelikliKazanimlar } from "../lib/rehberlik";
 import { puandanNet, nettenPuan } from "../lib/rehberlik-core";
 import { calismaProgramiUret, gunlereGoreGrupla, icsUret, oncelikKuyrugu } from "../lib/plan";
 import { demoAdapter, demoKarnelerUret } from "../lib/okulizyon/demo";
+import { VARSAYILAN_BAGLANTI } from "../lib/db";
 import { karneListesiHazirla } from "../lib/okulizyon/import";
 import type { Ogrenci, Sinav } from "../lib/types";
 
@@ -54,7 +55,7 @@ test("demo üreticisi deterministiktir ve ders toplamları tutarlıdır", async 
     ogrenci: ogrenciFiksturu(),
     ogrenciId: "ogrenci-1",
     sinavTuru: "TYT",
-    ayar: { aktif: true, baseUrl: "", girisEndpoint: "", karneEndpoint: "", ogrenciNo: "", tcKimlikNo: "", il: "", ilce: "", kurum: "", mod: "demo" },
+    ayar: { ...VARSAYILAN_BAGLANTI, aktif: true, mod: "demo" },
   });
   assert.equal(sonuc.karneler.length, 4);
 });

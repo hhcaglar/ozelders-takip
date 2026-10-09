@@ -17,13 +17,32 @@ function programDizini(): string {
   return path.join(veriDizini(), "programlar");
 }
 
+/**
+ * Doğrulanmış değerler dolu, doğrulanmamış olanlar bilerek BOŞ bırakıldı.
+ *
+ * Doğrulananlar (okulizyon.com erişilerek):
+ *   - baseUrl        https://okulizyon.com
+ *   - girisSayfasi   /app2/ogrgiris  (öğrenci girişi; öğretmen girişi /app2/giris)
+ *   - girisTipi      form üç kimlik sekmesi sunuyor: Öğrenci No / T.C. Kimlik No / Telefon
+ *   - alanlar        sınıf, il, ilçe, kurum, şifre
+ *   - kurumKodu      giriş adresinde ?kk=… parametresi gözlemlendi
+ *
+ * Bilinmeyenler (bilerek boş): girisEndpoint ve karneEndpoint. Okulizyon'un belgelenmiş
+ * bir API'si yok ve uç nokta adları yalnızca tarayıcının ağ sekmesinden okunabiliyor.
+ * Buraya uydurma "/api/giris" gibi bir yol yazmak, kullanıcıya doğrulanmamış bir bilgiyi
+ * doğrulanmış gibi sunmak olurdu; o yüzden boş ve arayüzde nasıl bulunacağı anlatılıyor.
+ */
 export const VARSAYILAN_BAGLANTI: BaglantiAyari = {
   aktif: false,
-  baseUrl: "",
-  girisEndpoint: "/api/giris",
-  karneEndpoint: "/api/karne",
+  baseUrl: "https://okulizyon.com",
+  girisSayfasi: "/app2/ogrgiris",
+  girisEndpoint: "",
+  karneEndpoint: "",
+  girisTipi: "ogrenciNo",
   ogrenciNo: "",
   tcKimlikNo: "",
+  telefon: "",
+  kurumKodu: "",
   il: "",
   ilce: "",
   kurum: "",

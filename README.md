@@ -63,19 +63,34 @@ rezerve edilir; tekrar blokları toplamın %25'ini geçemez.
 ## Okulizyon bağlantısı — bilmen gerekenler
 
 Okulizyon'un **kamuya açık, belgelenmiş bir REST API'si yoktur**; platform mobil uygulama ve
-`okulizyon.com` öğrenci girişi üstünden çalışır. Bu yüzden panel sabit bir adres varsaymaz:
+`okulizyon.com` öğrenci girişi üstünden çalışır.
 
-- **Demo mod (varsayılan):** Okulizyon biçiminde örnek karne üretir. Panelin tamamı — normalizasyon,
-  kazanım eşleştirme, analiz, yorum, program — gerçek kod yolundan geçer.
-- **Gerçek istek modu:** `/baglanti` ekranından taban adres, giriş ucu ve karne ucu girilir.
-  Adaptör girişten jeton/çerez alır, karne ucunu çağırır ve cevabı tolere eden bir okuyucuyla çözer.
-  Alan adı alternatifleri kabul edilir (`dogru/correct`, `bos/empty/blank`, `kazanım/konu/outcome`, …).
+**Doğrulananlar** (`okulizyon.com` erişilerek teyit edildi, varsayılan olarak dolu gelir):
+
+| | |
+| --- | --- |
+| Taban adres | `https://okulizyon.com` (ana site `/app/index.php`) |
+| Öğrenci girişi | `/app2/ogrgiris` · öğretmen girişi `/app2/giris` |
+| Kimlik sekmeleri | Öğrenci No / T.C. Kimlik No / Telefon — üçü de destekleniyor |
+| Form alanları | sınıf, il, ilçe, kurum, şifre |
+| Kurum kodu | giriş adresinde `?kk=…` parametresi gözlemlendi |
+| Alternatif barındırma | `okulizyon.karnemiz.com/<eğitim-yılı>/ogrenci/` (OrbimSoft) |
+
+**Bilinmeyenler** (uydurulmadı, boş bırakıldı):
+
+- **Giriş ve karne uç noktaları.** Yalnızca oturum açmış bir tarayıcının ağ sekmesinden okunabiliyor.
+  `/baglanti` ekranında adım adım tarif var. Boşken istek atılmaz; hata mesajı tarifi gösterir.
+- **Karne cevap şeması.** Kurumdan kuruma değişebiliyor. Normalize edici alan adı alternatiflerini
+  tolere eder (`dogru/correct`, `bos/empty/blank`, `kazanım/konu/outcome`, …) ama gerçek cevabı ağ
+  sekmesinden kopyalayıp örnek şemayla karşılaştırman gerekiyor.
+- **Optik sonuç dosyası biçimi.** Okulizyon sonuçları `.TXT` / `.DAT` olarak veriyor; sütun düzeni
+  belgelenmemiş. Bu biçim desteklenmiyor — iki CSV şemasından birine dönüştürüp içe aktar.
+
+**Demo mod (varsayılan):** Okulizyon biçiminde örnek karne üretir. Panelin tamamı — normalizasyon,
+kazanım eşleştirme, analiz, yorum, program — gerçek kod yolundan geçer.
 
 > Yalnızca kendi/kurumunun hesabı ve kendi öğrencisinin verisi için kullan. Otomatik çekimden önce
 > kurumun kullanım koşullarını kontrol et. Şifre diske yazılmaz; yalnızca istek süresince bellekte kalır.
-
-Uç noktalar girilmeden gerçek çekim yapılamaz — bu bir eksik değil, doğrulanmamış bir adresi
-kodda sabitlememe tercihidir.
 
 ## Yaklaşık olan kısımlar
 

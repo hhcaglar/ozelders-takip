@@ -4,6 +4,7 @@ import type { AddressInfo } from "node:net";
 import { after, before, test } from "node:test";
 import { httpAdapter } from "../lib/okulizyon/http";
 import { karneListesiHazirla } from "../lib/okulizyon/import";
+import { VARSAYILAN_BAGLANTI } from "../lib/db";
 import type { BaglantiAyari, Ogrenci } from "../lib/types";
 
 /**
@@ -33,6 +34,7 @@ function ogrenci(): Ogrenci {
 
 function ayar(over: Partial<BaglantiAyari> = {}): BaglantiAyari {
   return {
+    ...VARSAYILAN_BAGLANTI,
     aktif: true,
     baseUrl: taban,
     girisEndpoint: "/api/giris",
@@ -184,7 +186,7 @@ test("karne ucu boş dönerse hata mesajı alan adı farklılığına işaret ed
   );
 });
 
-test("eksik yapılandırma isteği hiç göndermeden durdurulur", async () => {
+test("eksik yapılandırma isteği hiç göndermeden durdurulur ve ağ sekmesine yönlendirir", async () => {
   await assert.rejects(
     () =>
       httpAdapter.senkron({
@@ -196,16 +198,68 @@ test("eksik yapılandırma isteği hiç göndermeden durdurulur", async () => {
       }),
     /taban adres/,
   );
+  // Uydurma uç nokta yok: boşken istek atılmaz, nasıl bulunacağı söylenir.
+  for (const bos of [{ girisEndpoint: "" }, { karneEndpoint: "" }, { girisEndpoint: "", karneEndpoint: "" }]) {
+    await assert.rejects(
+      () =>
+        httpAdapter.senkron({
+          ogrenci: ogrenci(),
+          ogrenciId: "o-http",
+          sinavTuru: "TYT",
+          ayar: ayar(bos),
+          sifre: "dogru-sifre",
+        }),
+      /uç noktaları tanımlanmamış[\s\S]*ağ sekmesinden/,
+    );
+  }
+  assert.equal(VARSAYILAN_BAGLANTI.girisEndpoint, "", "varsayılan giriş ucu uydurma olmamalı");
+  assert.equal(VARSAYILAN_BAGLANTI.karneEndpoint, "", "varsayılan karne ucu uydurma olmamalı");
+  assert.equal(VARSAYILAN_BAGLANTI.baseUrl, "https://okulizyon.com");
+  assert.equal(VARSAYILAN_BAGLANTI.girisSayfasi, "/app2/ogrgiris");
+});
+
+test("giriş tipi seçilen kimlik alanını gönderir, kurum kodu sorguya eklenir", async () => {
+  gelenIstekler.length = 0;
+  await httpAdapter.senkron({
+    ogrenci: ogrenci(),
+    ogrenciId: "o-http",
+    sinavTuru: "TYT",
+    ayar: ayar({ girisTipi: "tcKimlikNo", kurumKodu: "113013" }),
+    sifre: "dogru-sifre",
+  });
+  const giris = gelenIstekler.find((i) => i.url.startsWith("/api/giris"));
+  assert.ok(giris?.url.includes("kk=113013"), `kurum kodu sorguya eklenmedi: ${giris?.url}`);
+  const govde = JSON.parse(giris!.govde!);
+  assert.equal(govde.tcKimlikNo, "12345678901", "seçilen kimlik alanı gönderilmeli");
+  assert.equal(govde.ogrenciNo, "", "seçilmeyen kimlik alanı boş gitmeli");
+  assert.equal(govde.telefon, "");
+  assert.equal(govde.sinif, "12");
+  assert.equal(govde.il, "İstanbul");
+  assert.equal(govde.kk, "113013");
+
+  gelenIstekler.length = 0;
+  await httpAdapter.senkron({
+    ogrenci: ogrenci(),
+    ogrenciId: "o-http",
+    sinavTuru: "TYT",
+    ayar: ayar({ girisTipi: "telefon", telefon: "5551234567" }),
+    sifre: "dogru-sifre",
+  });
+  const govde2 = JSON.parse(gelenIstekler.find((i) => i.url.startsWith("/api/giris"))!.govde!);
+  assert.equal(govde2.telefon, "5551234567");
+  assert.equal(govde2.tcKimlikNo, "");
+
+  // Seçili tipin alanı boşsa istek atılmadan durmalı.
   await assert.rejects(
     () =>
       httpAdapter.senkron({
         ogrenci: ogrenci(),
         ogrenciId: "o-http",
         sinavTuru: "TYT",
-        ayar: ayar({ karneEndpoint: "" }),
+        ayar: ayar({ girisTipi: "telefon", telefon: "" }),
         sifre: "dogru-sifre",
       }),
-    /Karne uç noktası/,
+    /kimlik alanı boş/,
   );
 });
 
@@ -216,7 +270,7 @@ test("ulaşılamayan adres zaman aşımı/bağlantı hatası üretir", async () 
         ogrenci: ogrenci(),
         ogrenciId: "o-http",
         sinavTuru: "TYT",
-        ayar: ayar({ baseUrl: "http://127.0.0.1:9", girisEndpoint: "" }),
+        ayar: ayar({ baseUrl: "http://127.0.0.1:9" }),
         sifre: "x",
       }),
     /fetch failed|ECONNREFUSED/,

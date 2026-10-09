@@ -118,11 +118,21 @@ export interface Ogrenci {
 /** Okulizyon bağlantı ayarları. Şifreler diske yazılmaz. */
 export interface BaglantiAyari {
   aktif: boolean;
+  /** Okulizyon kök adresi. Doğrulanmış: https://okulizyon.com */
   baseUrl: string;
+  /** Giriş sayfası yolu. Doğrulanmış: /app2/ogrgiris (sayfadır, API ucu DEĞİLDİR). */
+  girisSayfasi: string;
+  /** Giriş isteğinin gittiği uç nokta. Bilinmiyor — tarayıcı ağ sekmesinden doldurulmalı. */
   girisEndpoint: string;
+  /** Karne/sonuç isteğinin gittiği uç nokta. Bilinmiyor — aynı yöntemle doldurulmalı. */
   karneEndpoint: string;
+  /** Okulizyon giriş formu üç kimlik sekmesi sunuyor; hangisinin kullanılacağı. */
+  girisTipi: "ogrenciNo" | "tcKimlikNo" | "telefon";
   ogrenciNo: string;
   tcKimlikNo: string;
+  telefon: string;
+  /** Giriş adresinde gözlemlenen kurum kodu (?kk=…). */
+  kurumKodu: string;
   il: string;
   ilce: string;
   kurum: string;
