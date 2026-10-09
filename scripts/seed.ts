@@ -3,7 +3,7 @@
  *
  *   npm run seed
  *
- * Okulizyon bağlantısı kurulmadan paneli denemek için iki öğrenci (biri TYT, biri LGS)
+ * Okulizyon bağlantısı kurulmadan paneli denemek için üç öğrenci (TYT, AYT ve LGS)
  * oluşturur, demo karneleri normalleştirip kaydeder ve çalışma programlarını üretir.
  * Zaten veri varsa hiçbir şeyi silmez; yalnızca eksik öğrencileri ekler.
  */
@@ -22,7 +22,7 @@ import { topluKazanimDurumu } from "../lib/analysis";
 import { bugunIso, gunEkle } from "../lib/tarih";
 import type { Ogrenci } from "../lib/types";
 
-const ORNEKLER: (Partial<Ogrenci> & { ad: string; sinavTuru: "TYT" | "LGS" })[] = [
+const ORNEKLER: (Partial<Ogrenci> & { ad: string; sinavTuru: "TYT" | "AYT" | "LGS" })[] = [
   {
     ad: "Elif Yılmaz",
     sinavTuru: "TYT",
@@ -32,6 +32,19 @@ const ORNEKLER: (Partial<Ogrenci> & { ad: string; sinavTuru: "TYT" | "LGS" })[] 
     hedefPuan: 450,
     hedefSiralama: 40000,
     haftalikSaat: 14,
+    blokDakika: 50,
+    calismaGunleri: [1, 2, 3, 4, 5, 6],
+  },
+  {
+    // AYT: 8 ders kartı, 154 soru. Sayısal ve sözel alan dersleri birlikte ölçülür.
+    ad: "Zeynep Arslan",
+    sinavTuru: "AYT",
+    sinifSeviyesi: "12",
+    okul: "Örnek Fen Lisesi",
+    okulizyonOgrenciNo: "445566",
+    hedefPuan: 470,
+    hedefSiralama: 25000,
+    haftalikSaat: 16,
     blokDakika: 50,
     calismaGunleri: [1, 2, 3, 4, 5, 6],
   },
