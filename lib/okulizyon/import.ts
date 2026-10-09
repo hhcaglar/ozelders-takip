@@ -1,4 +1,6 @@
-import type { SinavTuru } from "../types";
+import type { AytAlani, SinavTuru } from "../types";
+import { derslerOf } from "../data/dersler";
+import { kazanimlarOf } from "../data/kazanimlar";
 import { karneNormalize, type HamBolum, type HamKarne, type HamSoru } from "./parse";
 
 export interface IceAktarma {
@@ -155,6 +157,42 @@ export function karneListesiHazirla(
   return karneler.map((k, i) =>
     karneNormalize(k, { ogrenciId, sinavTuru, kaynakRef: kaynakRef ?? `satir-${i}` }),
   );
+}
+
+/**
+ * Sınav türüne ve AYT alanına göre örnek CSV üretir.
+ *
+ * Sabit TYT şablonu AYT ve LGS öğrencilerine tanınamayan ders adları veriyordu;
+ * AYT'de ayrıca alan belirleyici (Sayısal öğrencide Edebiyat satırı bulunmaz).
+ * Satırlar doğrudan `derslerOf` çıktısından üretilir, böylece şablon her zaman
+ * gerçekten kabul edilen ders kümesiyle aynı kalır.
+ */
+export function csvSablonUret(
+  tip: "soru" | "bolum",
+  sinavTuru: SinavTuru,
+  aytAlani?: AytAlani,
+): string {
+  const dersler = derslerOf(sinavTuru, aytAlani).slice(0, 4);
+  const baslik = sinavTuru === "LGS" ? "LGS Deneme 1" : sinavTuru === "AYT" ? "AYT Deneme 1" : "TYT Deneme 1";
+  const tarih = "2026-09-20";
+  if (tip === "soru") {
+    // Kazanım sütununa katalogdan gerçek bir kazanım adı yazılır; uydurma bir
+    // metin eşleşmediği için şablon kazanım eşleştirmesini hiç göstermezdi.
+    // Kataloğu boş olan dersler (AYT DKAB) için ünite/kazanım adı atlanır.
+    const satirlar = dersler.flatMap((d, i) => {
+      const k = kazanimlarOf(d.kod)[0];
+      const kazanim = k ? `${k.unite} / ${k.ad}` : "";
+      return [
+        `${baslik};${tarih};${d.kisaAd};${i * 2 + 1};${kazanim};D`,
+        `${baslik};${tarih};${d.kisaAd};${i * 2 + 2};${kazanim};Y`,
+      ];
+    });
+    return `baslik;tarih;ders;soru;kazanim;durum\n${satirlar.join("\n")}\n`;
+  }
+  const satirlar = dersler.map(
+    (d) => `${baslik};${tarih};${d.kisaAd};${Math.max(1, Math.round(d.soruSayisi * 0.6))};${Math.round(d.soruSayisi * 0.2)};${Math.round(d.soruSayisi * 0.15)}`,
+  );
+  return `baslik;tarih;ders;dogru;yanlis;bos\n${satirlar.join("\n")}\n`;
 }
 
 /** CSV içe aktarma şablonları — arayüzde indirilebilir örnek olarak kullanılır. */

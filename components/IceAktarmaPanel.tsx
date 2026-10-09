@@ -1,10 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { CSV_SABLON_BOLUM, CSV_SABLON_SORU } from "@/lib/okulizyon/import";
+import { csvSablonUret } from "@/lib/okulizyon/import";
+import type { AytAlani, SinavTuru } from "@/lib/types";
 import { Buton, Kart, girisSinifi } from "./ui";
 
-export default function IceAktarmaPanel({ ogrenciId }: { ogrenciId: string }) {
+export default function IceAktarmaPanel({
+  ogrenciId,
+  sinavTuru,
+  aytAlani,
+}: {
+  ogrenciId: string;
+  sinavTuru: SinavTuru;
+  aytAlani?: AytAlani;
+}) {
   const [icerik, setIcerik] = useState("");
   const [mesaj, setMesaj] = useState<{ ton: "olumlu" | "kritik" | "uyari"; metin: string } | null>(null);
   const [calisiyor, setCalisiyor] = useState(false);
@@ -36,7 +45,7 @@ export default function IceAktarmaPanel({ ogrenciId }: { ogrenciId: string }) {
   }
 
   function sablonIle(tip: "soru" | "bolum") {
-    setIcerik(tip === "soru" ? CSV_SABLON_SORU : CSV_SABLON_BOLUM);
+    setIcerik(csvSablonUret(tip, sinavTuru, aytAlani));
   }
 
   async function dosyaSec(e: React.ChangeEvent<HTMLInputElement>) {

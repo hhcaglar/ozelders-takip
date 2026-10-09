@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ogrenciBul, sinavKaydet } from "@/lib/db";
 import { karneListesiHazirla, metniKarneyeCevir } from "@/lib/okulizyon/import";
+import { derslerOf } from "@/lib/data/dersler";
 
 export const dynamic = "force-dynamic";
 
@@ -42,9 +43,14 @@ export async function POST(req: Request) {
   const gecerli = tumu.filter((s) => s.bolumler.length > 0);
 
   // Hiçbir dersi tanınmayan karne kaydetmeyiz: boş kayıt analizi ve programı kirletir.
+  // Önerilen ders adları gerçekten kabul edilen kümeden üretilir; sabit TYT
+  // listesi AYT ve LGS öğrencilerine tanınamayan ders adları veriyordu.
+  const kabulEdilen = derslerOf(ogrenci.sinavTuru, ogrenci.aytAlani)
+    .map((d) => d.kisaAd)
+    .join(" / ");
   const dersUyarisi = boslar.length
     ? `Şu kayıtlarda tanınan ders bulunamadı ve içe aktarılmadı: ${boslar.join(", ")}. ` +
-      `Ders adını "${ogrenci.sinavTuru === "LGS" ? "Türkçe / Matematik / Fen Bilimleri / İnkılap / Din / İngilizce" : "Türkçe / Matematik / Fen / Sosyal"}" gibi yaz.`
+      `Ders adını "${kabulEdilen}" gibi yaz.`
     : undefined;
 
   if (!gecerli.length) {

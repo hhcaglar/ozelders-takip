@@ -119,6 +119,8 @@ export default function OgrenciPanel(veri: PanelVerisi) {
       {sekme === "netler" && (
         <NetSekmesi
           ogrenciId={ogrenci.id}
+          sinavTuru={ogrenci.sinavTuru}
+          aytAlani={ogrenci.aytAlani}
           analiz={veri.analiz}
           dersTrend={veri.dersTrend}
           dersRenkleri={veri.dersRenkleri}

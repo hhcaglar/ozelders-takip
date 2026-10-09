@@ -9,7 +9,14 @@ const geciciDizin = mkdtempSync(path.join(tmpdir(), "panel-api-test-"));
 process.env.DATA_DIR = geciciDizin;
 
 import { ogrenciEkle, sinavKaydet, sinavlar } from "../lib/db";
-import { karneListesiHazirla, CSV_SABLON_BOLUM, CSV_SABLON_SORU } from "../lib/okulizyon/import";
+import {
+  karneListesiHazirla,
+  csvSablonUret,
+  metniKarneyeCevir,
+  CSV_SABLON_BOLUM,
+  CSV_SABLON_SORU,
+} from "../lib/okulizyon/import";
+import { DERSLER, derslerOf } from "../lib/data/dersler";
 import { demoKarnelerUret } from "../lib/okulizyon/demo";
 import { POST as importPOST } from "../app/api/import/route";
 import { GET as examsGET, DELETE as examsDELETE } from "../app/api/exams/route";
@@ -261,4 +268,52 @@ test("students GET/[id]: olmayan öğrenci 404 döner", async () => {
   assert.equal(r.status, 404);
   const yok = await patch("yok-boyle-id", { ad: "Kimse" });
   assert.equal(yok.durum, 404);
+});
+
+/* ── CSV şablonları ───────────────────────────────────────────────── */
+
+const SABLO_DURUMLARI: ["TYT" | "AYT" | "LGS", "SAY" | "EA" | "SOZ" | undefined][] = [
+  ["TYT", undefined],
+  ["AYT", "SAY"],
+  ["AYT", "EA"],
+  ["AYT", "SOZ"],
+  ["LGS", undefined],
+];
+
+/**
+ * Şablonlar sınav türüne ve AYT alanına göre üretilir. Sabit TYT şablonu AYT ve
+ * LGS öğrencilerine tanınamayan ders adları veriyordu.
+ */
+test("CSV şablonları her sınav türü ve alan için içe aktarılabilir", () => {
+  for (const [tur, alan] of SABLO_DURUMLARI) {
+    const kabul = new Set(derslerOf(tur, alan).map((d) => d.kisaAd));
+    for (const tip of ["bolum", "soru"] as const) {
+      const csv = csvSablonUret(tip, tur, alan);
+      const { karneler } = metniKarneyeCevir(csv, tur, "sablon");
+      const sinavlar = karneListesiHazirla(karneler, tur, "sablon", "sablon");
+      const gecerli = sinavlar.filter((s) => s.bolumler.length > 0);
+
+      assert.equal(gecerli.length, 1, `${tur}/${alan ?? "-"}/${tip}: geçerli karne yok`);
+      // Şablondaki her ders gerçekten tanınmış olmalı.
+      for (const b of gecerli[0].bolumler) {
+        assert.ok(kabul.has(DERSLER[b.ders].kisaAd), `${tur}/${alan ?? "-"}: tanınmayan ders ${b.ders}`);
+      }
+      assert.ok(gecerli[0].bolumler.length >= 3, `${tur}/${alan ?? "-"}/${tip}: bölüm sayısı az`);
+    }
+  }
+});
+
+test("soru şablonundaki kazanımlar katalogla eşleşir", () => {
+  // Uydurma kazanım metni eşleşmediği için şablon kazanım eşleştirmesini
+  // hiç göstermiyordu; artık katalogdan gerçek kazanım adı yazılıyor.
+  for (const [tur, alan] of SABLO_DURUMLARI) {
+    const csv = csvSablonUret("soru", tur, alan);
+    const { karneler } = metniKarneyeCevir(csv, tur, "sablon");
+    const sinav = karneListesiHazirla(karneler, tur, "sablon", "sablon").filter(
+      (s) => s.bolumler.length > 0,
+    )[0];
+    assert.ok(sinav.sorular.length > 0, `${tur}/${alan ?? "-"}: soru yok`);
+    const eslesen = sinav.sorular.filter((s) => s.kazanimId).length;
+    assert.equal(eslesen, sinav.sorular.length, `${tur}/${alan ?? "-"}: ${eslesen}/${sinav.sorular.length} eşleşti`);
+  }
 });

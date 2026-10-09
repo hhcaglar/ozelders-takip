@@ -2,7 +2,7 @@
 
 import { dersYorumu } from "@/lib/yorum";
 import { uzunTarih } from "@/lib/tarih";
-import type { Sinav, SinavAnalizi } from "@/lib/types";
+import type { AytAlani, Sinav, SinavAnalizi, SinavTuru } from "@/lib/types";
 import { Buton, Ilerleme, Kart, Rozet, Bos } from "@/components/ui";
 import { DersNetGrafigi } from "@/components/Grafikler";
 import SenkronPanel from "@/components/SenkronPanel";
@@ -10,12 +10,16 @@ import IceAktarmaPanel from "@/components/IceAktarmaPanel";
 
 export default function NetSekmesi({
   ogrenciId,
+  sinavTuru,
+  aytAlani,
   analiz,
   dersTrend,
   dersRenkleri,
   sinavlar,
 }: {
   ogrenciId: string;
+  sinavTuru: SinavTuru;
+  aytAlani?: AytAlani;
   analiz: SinavAnalizi | null;
   dersTrend: Record<string, number | string>[];
   dersRenkleri: { ad: string; renk: string }[];
@@ -150,7 +154,7 @@ export default function NetSekmesi({
 
         <div className="space-y-5">
           <SenkronPanel ogrenciId={ogrenciId} />
-          <IceAktarmaPanel ogrenciId={ogrenciId} />
+          <IceAktarmaPanel ogrenciId={ogrenciId} sinavTuru={sinavTuru} aytAlani={aytAlani} />
         </div>
       </div>
     </div>
