@@ -132,7 +132,7 @@ sorusuna yön gösterici bir eşik vermektir. Arayüzde bu uyarı her sayfada g�
 
 ```bash
 npm run typecheck   # tsc --noEmit
-npm test            # 98 test (node:test + tsx)
+npm test            # 100 test (node:test + tsx)
 npm run build       # next build
 DATA_DIR=/tmp/x npm run seed   # veriyi başka dizine yaz
 ```
