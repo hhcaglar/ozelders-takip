@@ -30,16 +30,16 @@ export default async function OgrenciSayfasi({ params }: Baglam) {
 
   const yorumlar: YorumBlogu[] = analiz ? sinavYorumu(ogrenci, analiz, onceki, oncekiAnaliz, toplu) : [];
 
-  const kazanimSayisi = derslerOf(ogrenci.sinavTuru).reduce((t, d) => t + kazanimlarOf(d.kod).length, 0);
+  const kazanimSayisi = derslerOf(ogrenci.sinavTuru, ogrenci.aytAlani).reduce((t, d) => t + kazanimlarOf(d.kod).length, 0);
 
-  const dersRenkleri = derslerOf(ogrenci.sinavTuru).map((d) => ({
+  const dersRenkleri = derslerOf(ogrenci.sinavTuru, ogrenci.aytAlani).map((d) => ({
     ad: d.kisaAd,
     renk: d.renk,
     kod: d.kod,
   }));
 
   // Ders bazlı ustalık özeti (grafik için).
-  const ustalikVerisi = derslerOf(ogrenci.sinavTuru).map((d) => {
+  const ustalikVerisi = derslerOf(ogrenci.sinavTuru, ogrenci.aytAlani).map((d) => {
     const k = toplu.filter((x) => x.kazanim.ders === d.kod);
     const olculen = k.filter((x) => x.durum !== "verisiz");
     const toplamSoru = olculen.reduce((t, x) => t + x.toplam, 0);
@@ -78,7 +78,7 @@ export default async function OgrenciSayfasi({ params }: Baglam) {
         Kazanım etiketleri Okulizyon'daki soru-kazanım eşleşmesinden türetilir; katalogla eşleşmeyen metinler
         yanlış etiketlenmek yerine boş bırakılır. Hiç ölçülmemiş kazanımlar “ölçülmedi” olarak kalır ve çalışma
         programında kör nokta riski olarak raporlanır. Bu panel {ogrenci.sinavTuru} için{" "}
-        {derslerOf(ogrenci.sinavTuru).length} derste {kazanimSayisi} kazanımı izler.
+        {derslerOf(ogrenci.sinavTuru, ogrenci.aytAlani).length} derste {kazanimSayisi} kazanımı izler.
       </p>
     </>
   );

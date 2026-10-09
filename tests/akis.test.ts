@@ -362,17 +362,20 @@ test("kazanım kataloğu AYT derslerini de kapsıyor", () => {
 test("AYT akışı alan dersleriyle uçtan uca çalışır", () => {
   const sinavlar = sinavlariUret("AYT", 3);
   const ogrenci = ogrenciFiksturu({ sinavTuru: "AYT", hedefPuan: 420 });
-  const beklenenDersler = new Set(derslerOf("AYT").map((d) => d.kod));
+  const alanDersleri = derslerOf("AYT", "SAY");
+  const beklenenDersler = new Set(alanDersleri.map((d) => d.kod));
 
   const analiz = sinavAnalizi(sinavlar[0]);
-  assert.equal(analiz.dersler.length, derslerOf("AYT").length);
-  assert.equal(analiz.toplamSoru, derslerOf("AYT").reduce((t, d) => t + d.soruSayisi, 0));
+  assert.equal(analiz.dersler.length, alanDersleri.length);
+  assert.equal(analiz.toplamSoru, alanDersleri.reduce((t, d) => t + d.soruSayisi, 0));
   assert.ok(analiz.dersler.every((d) => beklenenDersler.has(d.ders.kod)));
   assert.ok(analiz.netTavanOrani > 0 && analiz.netTavanOrani <= 1);
 
-  // Sayısal ve sözel alan dersleri birlikte ölçülmüş olmalı.
+  // Sayısal alan: Matematik + Fen Bilimleri (Fizik, Kimya, Biyoloji) = 80 soru.
   const kodlar = new Set(analiz.dersler.map((d) => d.ders.kod));
-  assert.ok(kodlar.has("AYT_MAT") && kodlar.has("AYT_EDB"));
+  assert.ok(kodlar.has("AYT_MAT") && kodlar.has("AYT_FIZ") && kodlar.has("AYT_KIM") && kodlar.has("AYT_BIY"));
+  // Sayısal aday Edebiyat/Tarih/Coğrafya/Felsefe çözmez.
+  assert.ok(!kodlar.has("AYT_EDB") && !kodlar.has("AYT_TAR"));
 
   const kazanimlar = topluKazanimDurumu(sinavlar);
   assert.ok(kazanimlar.length > 0);

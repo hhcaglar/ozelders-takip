@@ -28,6 +28,7 @@ export default function YeniOgrenci() {
       ad: String(f.get("ad") ?? "").trim(),
       sinifSeviyesi: String(f.get("sinifSeviyesi") ?? "12"),
       sinavTuru: String(f.get("sinavTuru") ?? "TYT") as "TYT" | "AYT" | "LGS",
+      aytAlani: String(f.get("aytAlani") ?? "SAY") as "SAY" | "EA" | "SOZ",
       okul: String(f.get("okul") ?? "").trim() || undefined,
       okulizyonOgrenciNo: String(f.get("okulizyonOgrenciNo") ?? "").trim() || undefined,
       hedefPuan: f.get("hedefPuan") ? Number(f.get("hedefPuan")) : undefined,
@@ -74,6 +75,16 @@ export default function YeniOgrenci() {
           <input name="sinifSeviyesi" className={girisSinifi} defaultValue="12" />
         </Alan>
       </div>
+      <Alan
+        etiket="AYT alanı"
+        ipucu="AYT'de her aday kendi alanının iki testini çözer; toplam 80 soru. TYT ve LGS için yok sayılır."
+      >
+        <select name="aytAlani" className={girisSinifi} defaultValue="SAY">
+          <option value="SAY">Sayısal — Matematik 40 + Fen 40 (Fizik 14, Kimya 13, Biyoloji 13)</option>
+          <option value="EA">Eşit ağırlık — Matematik 40 + Edebiyat 24 + Tarih-1 10 + Coğrafya-1 6</option>
+          <option value="SOZ">Sözel — Edebiyat 24 + Tarih 21 + Coğrafya 17 + Felsefe 12 + Din 6</option>
+        </select>
+      </Alan>
       <div className="grid grid-cols-2 gap-3">
         <Alan etiket="Hedef puan" ipucu="Net açığı bundan hesaplanır">
           <input name="hedefPuan" type="number" className={girisSinifi} placeholder="450" min={0} max={600} />

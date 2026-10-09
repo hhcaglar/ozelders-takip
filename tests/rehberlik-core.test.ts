@@ -16,6 +16,7 @@ import { sinavAnalizi } from "../lib/analysis";
 import { demoKarnelerUret } from "../lib/okulizyon/demo";
 import { karneListesiHazirla } from "../lib/okulizyon/import";
 import { derslerOf } from "../lib/data/dersler";
+import { kazanimlarOf } from "../lib/data/kazanimlar";
 import type { Ogrenci, SinavTuru } from "../lib/types";
 import {
   gunEkle,
@@ -69,7 +70,7 @@ describe("tahminiSiralama", () => {
 
 describe("net ↔ puan eğrileri", () => {
   test("TYT ve AYT gidiş-dönüşü kendi içinde tutarlı", () => {
-    for (const [tur, tavan] of [["TYT", 120], ["AYT", 160]] as const) {
+    for (const [tur, tavan] of [["TYT", 120], ["AYT", 80]] as const) {
       for (let net = 0; net <= tavan; net += 5) {
         const puan = nettenPuan(tur, net);
         const geri = puandanNet(tur, puan);
@@ -82,7 +83,7 @@ describe("net ↔ puan eğrileri", () => {
   });
 
   test("eğriler monoton artan", () => {
-    for (const [tur, tavan] of [["TYT", 120], ["AYT", 160]] as const) {
+    for (const [tur, tavan] of [["TYT", 120], ["AYT", 80]] as const) {
       let onceki = -1;
       for (let net = 0; net <= tavan; net += 1) {
         const p = nettenPuan(tur, net);
@@ -96,7 +97,10 @@ describe("net ↔ puan eğrileri", () => {
     assert.equal(nettenPuan("TYT", -5), 100);
     assert.equal(nettenPuan("TYT", 500), 500);
     assert.equal(nettenPuan("AYT", -1), 180);
+    // AYT'de bir aday en fazla 80 soru çözer; eğri orada 500 puana ulaşır.
+    assert.equal(nettenPuan("AYT", 80), 500);
     assert.equal(nettenPuan("AYT", 400), 500);
+    assert.equal(puandanNet("AYT", 500), 80);
   });
 
   test("LGS sayısal dersleri 4 katsayıyla ağırlıklanır", () => {
@@ -239,6 +243,69 @@ describe("hedef net dağıtımı", () => {
         }
         assert.ok(Object.values(hedef).every((v) => Number.isFinite(v)));
       }
+    }
+  });
+});
+
+describe("AYT alan modeli", () => {
+  /**
+   * AYT TYT gibi ortak değildir: her aday kendi alanının iki testini çözer ve
+   * toplam 80 soru cevaplar. Panel bir ara 8 dersin tamamını (154 soru) tek
+   * adayın çözdüğünü varsayıyordu; bu net tavanını, hedef neti ve puan
+   * eğrisini yanlış çıkarıyordu.
+   */
+  test("her alanın toplam soru sayısı 80'dir", () => {
+    for (const alan of ["SAY", "EA", "SOZ"] as const) {
+      const toplam = derslerOf("AYT", alan).reduce((t, d) => t + d.soruSayisi, 0);
+      assert.equal(toplam, 80, `${alan} toplamı ${toplam}`);
+    }
+  });
+
+  test("alanların ders kümeleri birbirinden ayrışır", () => {
+    const say = new Set(derslerOf("AYT", "SAY").map((d) => d.kod));
+    const ea = new Set(derslerOf("AYT", "EA").map((d) => d.kod));
+    const soz = new Set(derslerOf("AYT", "SOZ").map((d) => d.kod));
+
+    // Sayısal: Matematik + Fen Bilimleri.
+    assert.deepEqual([...say].sort(), ["AYT_BIY", "AYT_FIZ", "AYT_KIM", "AYT_MAT"]);
+    // Sayısal aday edebiyat/tarih çözmez.
+    assert.ok(!say.has("AYT_EDB") && !say.has("AYT_TAR") && !say.has("AYT_DIN"));
+    // Eşit ağırlık: Matematik + Edebiyat-Sosyal-1.
+    assert.deepEqual([...ea].sort(), ["AYT_COG", "AYT_EDB", "AYT_MAT", "AYT_TAR"]);
+    // Sözel: Edebiyat-Sosyal-1 + Sosyal Bilimler-2 (DKAB dâhil).
+    assert.ok(soz.has("AYT_DIN") && soz.has("AYT_FEL") && !soz.has("AYT_MAT"));
+
+    // Tarih/Coğrafya soru sayısı alana göre değişir: EA yalnızca -1 testini çözer.
+    const eaTarih = derslerOf("AYT", "EA").find((d) => d.kod === "AYT_TAR")!.soruSayisi;
+    const sozTarih = derslerOf("AYT", "SOZ").find((d) => d.kod === "AYT_TAR")!.soruSayisi;
+    assert.equal(eaTarih, 10);
+    assert.equal(sozTarih, 21);
+  });
+
+  test("alan verilmezse Sayısal varsayılır ve TYT/LGS alandan etkilenmez", () => {
+    assert.deepEqual(
+      derslerOf("AYT").map((d) => d.kod).sort(),
+      derslerOf("AYT", "SAY").map((d) => d.kod).sort(),
+    );
+    assert.equal(derslerOf("TYT").reduce((t, d) => t + d.soruSayisi, 0), 120);
+    assert.equal(derslerOf("TYT", "SOZ").reduce((t, d) => t + d.soruSayisi, 0), 120);
+    assert.equal(derslerOf("LGS", "EA").reduce((t, d) => t + d.soruSayisi, 0), 90);
+  });
+
+  test("kazanımlar alan içinde çift sayılmaz", () => {
+    for (const alan of ["SAY", "EA", "SOZ"] as const) {
+      const ids = derslerOf("AYT", alan).flatMap((d) => kazanimlarOf(d.kod).map((k) => k.id));
+      assert.equal(ids.length, new Set(ids).size, `${alan} alanında çift kazanım var`);
+      assert.ok(ids.length > 0, `${alan} alanında hiç kazanım yok`);
+    }
+  });
+
+  test("AYT net tavanı 80'i aşmaz", () => {
+    for (const alan of ["SAY", "EA", "SOZ"] as const) {
+      const tavan = derslerOf("AYT", alan).reduce((t, d) => t + d.soruSayisi, 0);
+      assert.equal(tavan, 80);
+      assert.equal(puandanNet("AYT", 500), 80);
+      assert.equal(nettenPuan("AYT", 80), 500);
     }
   });
 });

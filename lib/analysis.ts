@@ -7,8 +7,7 @@ import type {
   Kazanim,
   KazanimDurumu,
   Sinav,
-  SinavAnalizi,
-} from "./types";
+  SinavAnalizi, AytAlani } from "./types";
 
 const yuvarla = (x: number, b = 2) => Math.round(x * 10 ** b) / 10 ** b;
 
@@ -255,7 +254,7 @@ export function dersTrendi(
     });
 }
 
-/** Öğrencinin ölçülen ders kümesi (sınav türüne göre). */
-export function ogrenciDersleri(sinavTuru: Sinav["sinavTuru"]): DersKodu[] {
-  return derslerOf(sinavTuru).map((d) => d.kod);
+/** Öğrencinin ölçülen ders kümesi (sınav türüne ve AYT alanına göre). */
+export function ogrenciDersleri(sinavTuru: Sinav["sinavTuru"], aytAlani?: AytAlani): DersKodu[] {
+  return derslerOf(sinavTuru, aytAlani).map((d) => d.kod);
 }

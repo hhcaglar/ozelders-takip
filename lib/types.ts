@@ -20,6 +20,7 @@ export type DersKodu =
   | "AYT_TAR"
   | "AYT_COG"
   | "AYT_FEL"
+  | "AYT_DIN"
   // LGS
   | "LGS_TUR"
   | "LGS_MAT"
@@ -27,6 +28,13 @@ export type DersKodu =
   | "LGS_INK"
   | "LGS_DIN"
   | "LGS_INS";
+
+/**
+ * AYT alanı. AYT'de her aday kendi alanının iki testini çözer ve toplam 80 soru
+ * cevaplar; TYT gibi herkes için ortak değildir. Bu yüzden AYT ders kümesi ve
+ * ders başına soru sayısı alana göre değişir.
+ */
+export type AytAlani = "SAY" | "EA" | "SOZ";
 
 export interface DersBilgisi {
   kod: DersKodu;
@@ -101,6 +109,11 @@ export interface Ogrenci {
   ad: string;
   sinifSeviyesi: string;
   sinavTuru: SinavTuru;
+  /**
+   * AYT alanı. Yalnızca AYT öğrencileri için anlamlıdır; verilmezse SAY kabul
+   * edilir. AYT ders kümesi ve ders başına soru sayısı bu alana göre belirlenir.
+   */
+  aytAlani?: AytAlani;
   okul?: string;
   okulizyonOgrenciNo?: string;
   hedefPuan?: number;

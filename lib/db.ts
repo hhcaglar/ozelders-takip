@@ -93,6 +93,9 @@ export function ogrenciEkle(veri: Partial<Ogrenci> & { ad: string }): Ogrenci {
     ad: veri.ad,
     sinifSeviyesi: veri.sinifSeviyesi ?? "12",
     sinavTuru: veri.sinavTuru ?? "TYT",
+    // AYT alanı kalıcılaşmazsa öğrenci her okunuşta Sayısal varsayılır ve
+    // Eşit ağırlık / Sözel öğrencilerinin ders kümesi yanlış hesaplanır.
+    aytAlani: veri.aytAlani,
     okul: veri.okul,
     okulizyonOgrenciNo: veri.okulizyonOgrenciNo,
     hedefPuan: veri.hedefPuan,

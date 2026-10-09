@@ -18,9 +18,16 @@ const TYT_EGRISI: Egriler = [
   [70, 392], [80, 410], [90, 428], [100, 448], [110, 470], [120, 500],
 ];
 
+/**
+ * AYT'de bir aday alanına göre iki test çözer ve en fazla 80 soru cevaplar
+ * (Sayısal: Mat 40 + Fen 40; Eşit ağırlık: Mat 40 + Edebiyat-Sosyal-1 40;
+ * Sözel: Edebiyat-Sosyal-1 40 + Sosyal Bilimler-2 40). Eğri bu yüzden 80 net'te
+ * biter. Gerçek YKS yerleştirme puanı TYT ve AYT puanlarının ağırlıklı
+ * toplamıdır; burada AYT neti tek başına yaklaşık bir puana çevrilir.
+ */
 const AYT_EGRISI: Egriler = [
-  [0, 180], [20, 245], [40, 290], [60, 330], [80, 368], [100, 405],
-  [120, 440], [140, 472], [160, 500],
+  [0, 180], [10, 245], [20, 290], [30, 330], [40, 368], [50, 405],
+  [60, 440], [70, 472], [80, 500],
 ];
 
 /** LGS'de MEB katsayıları: sayısal üç ders 4, diğerleri 1 ağırlıklıdır. */

@@ -2,6 +2,7 @@ import { DERSLER, derslerOf } from "./data/dersler";
 import { kazanimlarOf } from "./data/kazanimlar";
 import { GUN_ADLARI, gunEkle, gunIndex, isoTarih, kisaTarih, saatEkle } from "./tarih";
 import type {
+  AytAlani,
   BlokTipi,
   CalismaBlogu,
   CalismaProgrami,
@@ -98,7 +99,7 @@ export function calismaProgramiUret(
   }
 
   /* ── 3. Görev kuyruğu ──────────────────────────────────────────── */
-  const oncelikliler = oncelikKuyrugu(toplu, sinavTuru);
+  const oncelikliler = oncelikKuyrugu(toplu, sinavTuru, ogrenci.aytAlani);
   const gorevler: Gorev[] = [];
   for (const k of oncelikliler) {
     // Zor kazanıma daha uzun konu bloğu; ikinci blok test.
@@ -320,14 +321,18 @@ function tarihBul(baslangic: string, haftaNo: number, gunNo: number): string {
  * Ölçülmüş eksikler öncelik skoruna göre; sayı yetmezse katalogdaki ağırlığı en yüksek
  * ölçülmemiş kazanımlar eklenir (kör nokta önleme).
  */
-export function oncelikKuyrugu(toplu: KazanimDurumu[], sinavTuru: SinavTuru): KazanimDurumu[] {
+export function oncelikKuyrugu(
+  toplu: KazanimDurumu[],
+  sinavTuru: SinavTuru,
+  aytAlani?: AytAlani,
+): KazanimDurumu[] {
   const limit = 40;
   const olculen = toplu
     .filter((k) => k.durum === "kritik" || k.durum === "gelistirilmeli")
     .sort((a, b) => b.oncelik - a.oncelik)
     .slice(0, limit);
 
-  const sinavKazanimlari = derslerOf(sinavTuru).flatMap((d) => kazanimlarOf(d.kod));
+  const sinavKazanimlari = derslerOf(sinavTuru, aytAlani).flatMap((d) => kazanimlarOf(d.kod));
   const secili = new Set(olculen.map((k) => k.kazanim.id));
   const doldurma = sinavKazanimlari
     .filter((k) => !secili.has(k.id))

@@ -8,6 +8,8 @@ const sema = z.object({
   ad: z.string().min(2, "Ad en az 2 karakter olmalı"),
   sinifSeviyesi: z.string().optional(),
   sinavTuru: z.enum(["TYT", "AYT", "LGS"]),
+  /** AYT alanı. Yalnızca AYT için anlamlı; verilmezse Sayısal kabul edilir. */
+  aytAlani: z.enum(["SAY", "EA", "SOZ"]).optional(),
   okul: z.string().optional(),
   okulizyonOgrenciNo: z.string().optional(),
   hedefPuan: z.number().min(0).max(600).optional(),

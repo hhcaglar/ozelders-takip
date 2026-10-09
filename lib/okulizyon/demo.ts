@@ -1,6 +1,6 @@
 import { derslerOf } from "../data/dersler";
 import { kazanimlarOf } from "../data/kazanimlar";
-import type { Kazanim, SinavTuru } from "../types";
+import type { Kazanim, SinavTuru, AytAlani } from "../types";
 import type { HamBolum, HamKarne, HamSoru } from "./parse";
 import type { OkulizyonAdapter, SenkronBaglami } from "./adapter";
 
@@ -37,9 +37,11 @@ export function demoKarnelerUret(
   sinavTuru: SinavTuru,
   ogrenciKimligi: string,
   sinavSayisi = 4,
+  aytAlani?: AytAlani,
 ): HamKarne[] {
   const rnd = mulberry32(hashTohum(ogrenciKimligi || "demo"));
-  const dersler = derslerOf(sinavTuru);
+  // AYT'de ders kümesi alana bağlıdır; alan verilmezse Sayısal varsayılır.
+  const dersler = derslerOf(sinavTuru, aytAlani);
   const bugun = new Date();
 
   // Ders bazlı taban yeterlik (0-1).
@@ -124,7 +126,12 @@ export function demoKarnelerUret(
 export const demoAdapter: OkulizyonAdapter = {
   ad: "demo",
   async senkron(baglam: SenkronBaglami) {
-    const karneler = demoKarnelerUret(baglam.sinavTuru, baglam.ogrenciId, baglam.sinavSayisi ?? 4);
+    const karneler = demoKarnelerUret(
+      baglam.sinavTuru,
+      baglam.ogrenciId,
+      baglam.sinavSayisi ?? 4,
+      baglam.ogrenci.aytAlani,
+    );
     return {
       karneler,
       mesaj: `Demo modunda ${karneler.length} örnek karne üretildi. Gerçek Okulizyon verisi için bağlantı ayarlarından modu "Gerçek istek (HTTP)" olarak değiştir.`,

@@ -1,4 +1,4 @@
-import type { DersBilgisi, DersKodu, SinavTuru } from "../types";
+import type { AytAlani, DersBilgisi, DersKodu, SinavTuru } from "../types";
 
 /**
  * ÖSYM/MEB sınav yerleşimine göre ders kartları.
@@ -15,9 +15,17 @@ export const DERSLER: Record<DersKodu, DersBilgisi> = {
   AYT_KIM: { kod: "AYT_KIM", ad: "AYT Kimya", kisaAd: "Kimya", sinav: "AYT", alan: "sayisal", soruSayisi: 13, renk: "#8b5cf6" },
   AYT_BIY: { kod: "AYT_BIY", ad: "AYT Biyoloji", kisaAd: "Biyoloji", sinav: "AYT", alan: "sayisal", soruSayisi: 13, renk: "#22c55e" },
   AYT_EDB: { kod: "AYT_EDB", ad: "AYT Türk Dili ve Edebiyatı", kisaAd: "Edebiyat", sinav: "AYT", alan: "sozel", soruSayisi: 24, renk: "#ec4899" },
+  // Tarih ve Coğrafya AYT'de iki ayrı teste bölünmüştür: -1 (Edebiyat-Sosyal-1)
+  // ve -2 (Sosyal Bilimler-2). EA öğrencisi yalnızca -1'i, SOZ öğrencisi ikisini
+  // birden çözer. Kartlar tek branş olarak kalır, soru sayısı alana göre değişir.
   AYT_TAR: { kod: "AYT_TAR", ad: "AYT Tarih", kisaAd: "Tarih", sinav: "AYT", alan: "sozel", soruSayisi: 21, renk: "#14b8a6" },
   AYT_COG: { kod: "AYT_COG", ad: "AYT Coğrafya", kisaAd: "Coğrafya", sinav: "AYT", alan: "sozel", soruSayisi: 17, renk: "#84cc16" },
   AYT_FEL: { kod: "AYT_FEL", ad: "AYT Felsefe Grubu", kisaAd: "Felsefe", sinav: "AYT", alan: "sozel", soruSayisi: 12, renk: "#a855f7" },
+  // DKAB yalnızca Sözel alanın Sosyal Bilimler-2 testinde sorulur (6 soru).
+  // Kazanım kataloğunda DKAB kazanımı yok, bu yüzden bu dersin kazanım listesi
+  // boştur: net'i ölçülür ama kazanım eşleştirmesi yapılmaz. Felsefe havuzuna
+  // bağlamak SOZ alanında aynı kazanımları iki kez sayardı.
+  AYT_DIN: { kod: "AYT_DIN", ad: "AYT Din Kültürü ve Ahlak Bilgisi", kisaAd: "Din", sinav: "AYT", alan: "sozel", soruSayisi: 6, renk: "#0ea5e9" },
 
   LGS_TUR: { kod: "LGS_TUR", ad: "LGS Türkçe", kisaAd: "Türkçe", sinav: "LGS", alan: "genel", soruSayisi: 20, renk: "#6366f1" },
   LGS_MAT: { kod: "LGS_MAT", ad: "LGS Matematik", kisaAd: "Matematik", sinav: "LGS", alan: "sayisal", soruSayisi: 20, renk: "#f59e0b" },
@@ -29,8 +37,51 @@ export const DERSLER: Record<DersKodu, DersBilgisi> = {
 
 export const DERS_LISTESI = Object.values(DERSLER);
 
-export function derslerOf(sinav: SinavTuru): DersBilgisi[] {
-  return DERS_LISTESI.filter((d) => d.sinav === sinav);
+/**
+ * AYT alanlarına göre çözülen testler ve soru sayıları.
+ *
+ * AYT TYT gibi ortak değildir: her aday kendi alanının iki testini çözer ve
+ * toplam 80 soru cevaplar.
+ *   Sayısal      : Matematik 40 + Fen Bilimleri 40 (Fizik 14, Kimya 13, Biyoloji 13)
+ *   Eşit ağırlık : Matematik 40 + Edebiyat-Sosyal-1 40 (Edebiyat 24, Tarih-1 10, Coğrafya-1 6)
+ *   Sözel        : Edebiyat-Sosyal-1 40 + Sosyal Bilimler-2 40
+ *                  (Edebiyat 24, Tarih-1 10, Coğrafya-1 6, Tarih-2 11, Coğrafya-2 11,
+ *                   Felsefe Grubu 12, DKAB 6)
+ */
+export const AYT_ALAN_DERSLERI: Record<AytAlani, { kod: DersKodu; soruSayisi: number }[]> = {
+  SAY: [
+    { kod: "AYT_MAT", soruSayisi: 40 },
+    { kod: "AYT_FIZ", soruSayisi: 14 },
+    { kod: "AYT_KIM", soruSayisi: 13 },
+    { kod: "AYT_BIY", soruSayisi: 13 },
+  ],
+  EA: [
+    { kod: "AYT_MAT", soruSayisi: 40 },
+    { kod: "AYT_EDB", soruSayisi: 24 },
+    { kod: "AYT_TAR", soruSayisi: 10 },
+    { kod: "AYT_COG", soruSayisi: 6 },
+  ],
+  SOZ: [
+    { kod: "AYT_EDB", soruSayisi: 24 },
+    { kod: "AYT_TAR", soruSayisi: 21 },
+    { kod: "AYT_COG", soruSayisi: 17 },
+    { kod: "AYT_FEL", soruSayisi: 12 },
+    { kod: "AYT_DIN", soruSayisi: 6 },
+  ],
+};
+
+export const VARSAYILAN_AYT_ALANI: AytAlani = "SAY";
+
+/**
+ * Sınavın ders kartları. AYT için alan zorunludur: alan verilmezse Sayısal
+ * varsayılır. TYT ve LGS herkes için ortaktır, alan parametresi yok sayılır.
+ */
+export function derslerOf(sinav: SinavTuru, aytAlani?: AytAlani): DersBilgisi[] {
+  if (sinav !== "AYT") return DERS_LISTESI.filter((d) => d.sinav === sinav);
+  return AYT_ALAN_DERSLERI[aytAlani ?? VARSAYILAN_AYT_ALANI].map(({ kod, soruSayisi }) => ({
+    ...DERSLER[kod],
+    soruSayisi,
+  }));
 }
 
 export function dersOf(kod: DersKodu): DersBilgisi {

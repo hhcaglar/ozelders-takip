@@ -36,9 +36,10 @@ const ORNEKLER: (Partial<Ogrenci> & { ad: string; sinavTuru: "TYT" | "AYT" | "LG
     calismaGunleri: [1, 2, 3, 4, 5, 6],
   },
   {
-    // AYT: 8 ders kartı, 154 soru. Sayısal ve sözel alan dersleri birlikte ölçülür.
+    // AYT alana göre değişir: her aday kendi alanının iki testini çözer, toplam 80 soru.
     ad: "Zeynep Arslan",
     sinavTuru: "AYT",
+    aytAlani: "SAY",
     sinifSeviyesi: "12",
     okul: "Örnek Fen Lisesi",
     okulizyonOgrenciNo: "445566",
@@ -71,7 +72,7 @@ function main() {
       continue;
     }
     const o = ogrenciEkle(ornek);
-    const ham = demoKarnelerUret(ornek.sinavTuru, o.id, 4);
+    const ham = demoKarnelerUret(ornek.sinavTuru, o.id, 4, o.aytAlani);
     const eklenen = sinavKaydet(karneListesiHazirla(ham, ornek.sinavTuru, o.id, "seed"));
     const program = calismaProgramiUret(
       ogrenciler().find((x) => x.id === o.id)!,

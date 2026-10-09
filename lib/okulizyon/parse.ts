@@ -12,7 +12,7 @@ const TR_MAP: Record<string, string> = {
 const DERS_ESLESMESI: { anahtar: RegExp; kod: Partial<Record<SinavTuru, DersKodu>> }[] = [
   { anahtar: /ingilizce|english|\bins\b/, kod: { TYT: "TYT_TUR", AYT: "AYT_EDB", LGS: "LGS_INS" } },
   { anahtar: /inkilap|ataturk/, kod: { TYT: "TYT_SOS", AYT: "AYT_TAR", LGS: "LGS_INK" } },
-  { anahtar: /din kulturu|\bdin\b/, kod: { TYT: "TYT_SOS", AYT: "AYT_FEL", LGS: "LGS_DIN" } },
+  { anahtar: /din kulturu|\bdin\b/, kod: { TYT: "TYT_SOS", AYT: "AYT_DIN", LGS: "LGS_DIN" } },
   { anahtar: /felsefe|psikoloji|sosyoloji|\bmantik\b/, kod: { TYT: "TYT_SOS", AYT: "AYT_FEL", LGS: "LGS_DIN" } },
   { anahtar: /turkce|edebiyat|\btdb\b|dil ve anlat/, kod: { TYT: "TYT_TUR", AYT: "AYT_EDB", LGS: "LGS_TUR" } },
   { anahtar: /matematik|geometri|\bmat\b/, kod: { TYT: "TYT_MAT", AYT: "AYT_MAT", LGS: "LGS_MAT" } },

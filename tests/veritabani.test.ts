@@ -128,3 +128,23 @@ test("bozuk veri dosyası paneli çökertmez", () => {
 });
 
 process.on("exit", () => rmSync(geciciDizin, { recursive: true, force: true }));
+
+test("ogrenciEkle AYT alanını kalıcılaştırır", () => {
+  // Regresyon: ogrenciEkle alanları tek tek kuruyordu ve aytAlani listede yoktu.
+  // Alan kaybolunca her okunuşta Sayısal varsayılıyor, Eşit ağırlık ve Sözel
+  // öğrencilerinin ders kümesi yanlış hesaplanıyordu.
+  const ea = db.ogrenciEkle({ ad: "EA Öğrenci", sinavTuru: "AYT", aytAlani: "EA" });
+  assert.equal(ea.aytAlani, "EA");
+  assert.equal(db.ogrenciBul(ea.id)?.aytAlani, "EA");
+
+  const soz = db.ogrenciEkle({ ad: "Sözel Öğrenci", sinavTuru: "AYT", aytAlani: "SOZ" });
+  assert.equal(db.ogrenciBul(soz.id)?.aytAlani, "SOZ");
+
+  // Alan verilmeyen AYT öğrencisinde alan tanımsız kalır (okuyucu SAY varsayar).
+  const belirsiz = db.ogrenciEkle({ ad: "Alansız AYT", sinavTuru: "AYT" });
+  assert.equal(db.ogrenciBul(belirsiz.id)?.aytAlani, undefined);
+
+  db.ogrenciSil(ea.id);
+  db.ogrenciSil(soz.id);
+  db.ogrenciSil(belirsiz.id);
+});

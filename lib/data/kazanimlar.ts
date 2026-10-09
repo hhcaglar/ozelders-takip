@@ -475,6 +475,14 @@ const KATALOG: Record<DersKodu, Unite[]> = {
     ],
   ],
 
+  /**
+   * AYT Din Kültürü ve Ahlak Bilgisi (DKAB) yalnızca Sözel alanın Sosyal
+   * Bilimler-2 testinde 6 soru olarak çıkar. Katalogda DKAB kazanımı tutulmuyor;
+   * bu dersin neti ölçülür ama kazanım eşleştirmesi yapılmaz. Felsefe havuzuna
+   * bağlamak Sözel alanında aynı kazanımları iki kez sayardı.
+   */
+  AYT_DIN: [],
+
   /* ─────────────────────────────  LGS  ───────────────────────────── */
   LGS_TUR: [
     [
@@ -681,6 +689,7 @@ const UNITE_KISA: Record<string, string> = {
   AYT_TAR: "TAR",
   AYT_COG: "COG",
   AYT_FEL: "FEL",
+  AYT_DIN: "DKAB",
   LGS_TUR: "TUR",
   LGS_MAT: "MAT",
   LGS_FEN: "FEN",
