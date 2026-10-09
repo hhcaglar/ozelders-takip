@@ -70,12 +70,20 @@ export default function OgrenciPanel(veri: PanelVerisi) {
             {ogrenci.okulizyonOgrenciNo ? ` · Okulizyon no ${ogrenci.okulizyonOgrenciNo}` : ""}
           </p>
         </div>
-        <Link
-          href="/"
-          className="yazdirma-gizle rounded-lg border border-cizgi px-3 py-1.5 text-sm text-solgun transition hover:bg-zemin"
-        >
-          ← Öğrenciler
-        </Link>
+        <div className="yazdirma-gizle flex flex-wrap gap-2">
+          <Link
+            href={`/ogrenci/${ogrenci.id}/rapor`}
+            className="rounded-lg bg-vurgu px-3 py-1.5 text-sm font-medium text-white transition hover:bg-indigo-700"
+          >
+            Rapor yaz
+          </Link>
+          <Link
+            href="/"
+            className="rounded-lg border border-cizgi px-3 py-1.5 text-sm text-solgun transition hover:bg-zemin"
+          >
+            ← Öğrenciler
+          </Link>
+        </div>
       </div>
 
       <nav className="yazdirma-gizle flex flex-wrap gap-1 border-b border-cizgi">

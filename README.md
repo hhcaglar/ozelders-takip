@@ -42,7 +42,20 @@ YorumBlogu[] (gerekçeli Türkçe metin)      RehberlikSonucu (açık, öneri, r
 | `lib/rehberlik-core.ts` | Net ↔ puan eğrileri, hedef kıyası, ders bazlı hedef dağıtımı |
 | `lib/rehberlik.ts` | Rehberlik raporu: öneri, risk, öncelik sırası, tekrar listesi |
 | `lib/plan.ts` | Çalışma programı üreticisi + ICS takvim çıktısı |
+| `lib/rapor.ts` | Veli/öğrenci için yazdırılabilir rehberlik raporu üreticisi (bölümlü metin + düz metin) |
+| `lib/dilbilgisi.ts` | Türkçe ünlü uyumu: yüzde ifadelerine ek üretimi |
 | `lib/db.ts` | Dosya tabanlı kalıcılık (atomik yazım, `data/` dizini) |
+
+### Rehberlik raporu
+
+Öğrenci panelindeki **Rapor yaz** düğmesi `/ogrenci/<id>/rapor` sayfasını açar. Sekiz bölümlü
+bir metin üretir: genel durum, sınav sınav net dökümü, dersler, güçlü/zayıf kazanımlar, çalışma
+programı özeti, hedef kıyası, öneriler ve künye. Sayfa yazdırma için biçimlendirilmiştir
+tarayıcıdan PDF olarak kaydedilebilir; aynı metin panoya kopyalanabilir veya `.txt` olarak
+indirilebilir.
+
+Rapor metni, üretilen sayıların hepsini analizin kendisinden alır: elle yazılmış cümle kalıpları
+yalnızca eşikleri anlatır, veriyi anlatmaz.
 
 ## Öne çıkan hesaplar
 

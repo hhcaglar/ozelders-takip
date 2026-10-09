@@ -1,4 +1,5 @@
 import { siniflandir } from "./rehberlik-core";
+import { yuzdeBelirtme, yuzdeBulunma, yuzdeIyelik, yuzdeYonelik } from "./dilbilgisi";
 import { DERSLER } from "./data/dersler";
 import type { DersAnalizi, KazanimDurumu, Ogrenci, Sinav, SinavAnalizi, YorumBlogu } from "./types";
 
@@ -33,7 +34,7 @@ export function sinavYorumu(
         `${analiz.toplamYanlis} tanesini yanlış cevaplamış, ${analiz.toplamBos} soruyu boş bırakmışsın. ` +
         `Toplam netin ${analiz.toplamNet.toFixed(2)}.`,
       analiz.netTavanOrani
-        ? `Bu, sınavdaki ${s.bolumler.reduce((t, b) => t + (DERSLER[b.ders]?.soruSayisi ?? 0), 0)} soruluk net tavanının ${pct(analiz.netTavanOrani)}'ine karşılık geliyor.`
+        ? `Bu, sınavdaki ${s.bolumler.reduce((t, b) => t + (DERSLER[b.ders]?.soruSayisi ?? 0), 0)} soruluk net tavanının ${yuzdeYonelik(analiz.netTavanOrani)} karşılık geliyor.`
         : "",
       oncekiAnaliz
         ? `Bir önceki sınavına (${oncekiAnaliz.sinav.baslik}) göre netin ${netFarki! >= 0 ? "+" : ""}${netFarki!.toFixed(2)} değişmiş; performansın ${yon}.`
@@ -87,7 +88,7 @@ export function sinavYorumu(
     bloglar.push({
       baslik: "Yanlış Analizi",
       ton: "uyari",
-      metin: `İşaretlediğin soruların ${pct(yanlisOrani)}'i yanlış. Bu oran %20'nin belirgin üstünde ve iki nedene işaret eder: ya konu eksiği var ya da soruyu okumadan cevaplıyorsun. ` +
+      metin: `İşaretlediğin soruların ${yuzdeIyelik(yanlisOrani)} yanlış. Bu oran %20 eşiğinin belirgin üstünde ve iki nedene işaret eder: ya konu eksiği var ya da soruyu okumadan cevaplıyorsun. ` +
         `Öneri: her deneme sonrası yanlış yaptığın her soruyu "bilgi eksiği / dikkat / işlem hatası / süre yetmedi" diye etiketleyip yanlış defterine yaz. ` +
         `Bir hafta sonra aynı soruları yeniden çöz; hâlâ yapamıyorsan konu eksiğidir ve konuya dönmen gerekir.`,
     });
@@ -96,7 +97,7 @@ export function sinavYorumu(
     bloglar.push({
       baslik: "Boş Bırakma Davranışı",
       ton: "uyari",
-      metin: `Soruların ${pct(bosOrani)}'ini boş bırakmışsın. Boş soru, yanlış sorudan daha pahalıdır: yanlış en azından sana hangi kazanımda eksik olduğunu söyler, boş hiçbir veri üretmez. ` +
+      metin: `Soruların ${yuzdeBelirtme(bosOrani)} boş bırakmışsın. Boş soru, yanlış sorudan daha pahalıdır: yanlış en azından sana hangi kazanımda eksik olduğunu söyler, boş hiçbir veri üretmez. ` +
         `Kalan süre sorunuysa tur tekniği uygula (kolay → orta → zor), süre değilse soruyu okumadan geçme alışkanlığına dön; her boş bıraktığın soruyu en azından eleyerek işaretle.`,
     });
   }
@@ -213,7 +214,7 @@ function hedefKiyas(ogrenci: Ogrenci, analiz: SinavAnalizi): YorumBlogu | null {
     baslik: "Hedefe Uzaklık",
     ton: k.netAcigi > 20 ? "kritik" : "uyari",
     metin: `${ogrenci.hedefPuan} puanlık hedefin yaklaşık ${k.hedefNet.toFixed(0)} nete karşılık geliyor; şu an ${analiz.toplamNet.toFixed(2)} nettesin. ` +
-      `Aradaki fark ${k.netAcigi.toFixed(2)} net, yani hedefin ${pct(k.hedefeYuzde)}'indesin. ` +
+      `Aradaki fark ${k.netAcigi.toFixed(2)} net, yani hedefin ${yuzdeBulunma(k.hedefeYuzde)}. ` +
       (p
         ? `Bu farkın en rahat kapanacağı yer ${p.ad}: ${p.mevcutNet.toFixed(2)} nettesin ve ${p.tavan} soruluk tavanda ${p.acik.toFixed(2)} netlik alan duruyor. `
         : "") +
