@@ -117,7 +117,7 @@ sorusuna yön gösterici bir eşik vermektir. Arayüzde bu uyarı her sayfada g�
 
 ```bash
 npm run typecheck   # tsc --noEmit
-npm test            # 77 test (node:test + tsx)
+npm test            # 88 test (node:test + tsx)
 npm run build       # next build
 DATA_DIR=/tmp/x npm run seed   # veriyi başka dizine yaz
 ```
@@ -127,7 +127,9 @@ kaldırıp `httpAdapter`'ın giriş → jeton → karne → normalizasyon zincir
 `tests/akis.test.ts` demo veriden programa kadar tüm zinciri (TYT, AYT ve LGS ayrı ayrı),
 `tests/veritabani.test.ts` kalıcılığı, `tests/parse.test.ts` karne/CSV çözümlemeyi doğrular.
 
-`tests/rehberlik-core.test.ts` sayısal çekirdeği sabitler: puan→sıralama eğrisinin 200-500
+`tests/api.test.ts` route handler'larını gerçek `Request` nesneleriyle çağırıp hata dallarını
+(400/404/422) ve kalıcılık etkilerini doğrular. `tests/rehberlik-core.test.ts` sayısal çekirdeği
+sabitler: puan→sıralama eğrisinin 200-500
 aralığında monoton azaldığı, net↔puan gidiş-dönüşünün tutarlı olduğu, hedef netin sınavın
 net tavanını aşmadığı ve ders bazlı hedef toplamının hedef neti verdiği. `tests/rapor.test.ts`
 rapor üreticisini, `tests/dilbilgisi.test.ts` Türkçe yüzde eklerini denetler.
