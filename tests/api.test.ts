@@ -14,6 +14,11 @@ import { demoKarnelerUret } from "../lib/okulizyon/demo";
 import { POST as importPOST } from "../app/api/import/route";
 import { GET as examsGET, DELETE as examsDELETE } from "../app/api/exams/route";
 import { GET as studentsGET, POST as studentsPOST } from "../app/api/students/route";
+import {
+  GET as studentGET,
+  PATCH as studentPATCH,
+} from "../app/api/students/[id]/route";
+import { ogrenciBul } from "../lib/db";
 
 after(() => rmSync(geciciDizin, { recursive: true, force: true }));
 
@@ -191,4 +196,69 @@ test("students: zorunlu alanlar eksikse 400 döner", async () => {
     ),
   );
   assert.equal(tur.status, 400);
+});
+
+/* ── PATCH /api/students/[id] ─────────────────────────────────────── */
+
+async function patch(id: string, govde: unknown) {
+  const r = await studentPATCH(
+    istek(`/api/students/${id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(govde),
+    }),
+    { params: Promise.resolve({ id }) },
+  );
+  return { durum: r.status, govde: (await r.json()) as Record<string, unknown> };
+}
+
+/**
+ * Regresyon: PATCH ham `Partial<Ogrenci>` kabul ediyordu. Geçersiz sinavTuru,
+ * aytAlani, negatif blokDakika ve 9999 haftalikSaat doğrudan kalıcılaşıp analiz,
+ * program ve rapor hesaplarını bozuyordu.
+ */
+test("students PATCH: geçersiz alanlar 400 döner ve kaydı bozmaz", async () => {
+  const once = ogrenciBul(ogrenci.id)!;
+
+  const gecersizAlan = await patch(ogrenci.id, { aytAlani: "XYZ" });
+  assert.equal(gecersizAlan.durum, 400);
+
+  const gecersizTur = await patch(ogrenci.id, { sinavTuru: "KPSS" });
+  assert.equal(gecersizTur.durum, 400);
+
+  const negatif = await patch(ogrenci.id, { blokDakika: -5 });
+  assert.equal(negatif.durum, 400);
+
+  const asiri = await patch(ogrenci.id, { haftalikSaat: 9999 });
+  assert.equal(asiri.durum, 400);
+
+  const bosGun = await patch(ogrenci.id, { calismaGunleri: [] });
+  assert.equal(bosGun.durum, 400);
+
+  const sonra = ogrenciBul(ogrenci.id)!;
+  assert.equal(sonra.sinavTuru, once.sinavTuru);
+  assert.equal(sonra.aytAlani, once.aytAlani);
+  assert.equal(sonra.blokDakika, once.blokDakika);
+  assert.equal(sonra.haftalikSaat, once.haftalikSaat);
+});
+
+test("students PATCH: geçerli güncelleme uygulanır ve id değiştirilemez", async () => {
+  const guncel = await patch(ogrenci.id, { aytAlani: "EA", hedefPuan: 430 });
+  assert.equal(guncel.durum, 200);
+  assert.equal(ogrenciBul(ogrenci.id)?.aytAlani, "EA");
+  assert.equal(ogrenciBul(ogrenci.id)?.hedefPuan, 430);
+
+  // İstemci id gönderse bile kayıt başka bir öğrenciye taşınamaz.
+  const tasinma = await patch(ogrenci.id, { id: "baska-bir-id", ad: "Adı Değişti" });
+  assert.equal(tasinma.durum, 200);
+  assert.ok(ogrenciBul(ogrenci.id), "kayıp: id değişmiş");
+  assert.equal(ogrenciBul("baska-bir-id" as never), undefined);
+  assert.equal(ogrenciBul(ogrenci.id)?.ad, "Adı Değişti");
+});
+
+test("students GET/[id]: olmayan öğrenci 404 döner", async () => {
+  const r = await studentGET(istek("/api/students/yok"), { params: Promise.resolve({ id: "yok-boyle-id" }) });
+  assert.equal(r.status, 404);
+  const yok = await patch("yok-boyle-id", { ad: "Kimse" });
+  assert.equal(yok.durum, 404);
 });
