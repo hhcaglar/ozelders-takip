@@ -5,11 +5,18 @@ import { adapterSec } from "../lib/okulizyon/adapter";
 import { demoAdapter } from "../lib/okulizyon/demo";
 import { httpAdapter } from "../lib/okulizyon/http";
 import {
+  dersBazliHedefNet,
   lgsAgirlikliOran,
   nettenPuan,
   puandanNet,
+  siniflandir,
   tahminiSiralama,
 } from "../lib/rehberlik-core";
+import { sinavAnalizi } from "../lib/analysis";
+import { demoKarnelerUret } from "../lib/okulizyon/demo";
+import { karneListesiHazirla } from "../lib/okulizyon/import";
+import { derslerOf } from "../lib/data/dersler";
+import type { Ogrenci, SinavTuru } from "../lib/types";
 import {
   gunEkle,
   gunIndex,
@@ -172,5 +179,66 @@ describe("adapterSec", () => {
   test("mod alanı bozulursa demo adaptörüne düşer", () => {
     const ayar = { ...VARSAYILAN_BAGLANTI, mod: "bilinmeyen" } as unknown as BaglantiAyari;
     assert.equal(adapterSec(ayar).ad, demoAdapter.ad);
+  });
+});
+
+describe("hedef net dağıtımı", () => {
+  function ogrenci(tur: SinavTuru, hedefPuan: number): Ogrenci {
+    return {
+      id: "o1", ad: "Hedef Test", sinifSeviyesi: "12", sinavTuru: tur, hedefPuan,
+      haftalikSaat: 14, calismaGunleri: [1, 2, 3, 4, 5, 6], blokDakika: 50,
+      olusturulma: "2026-01-01T00:00:00.000Z", guncelleme: "2026-01-01T00:00:00.000Z",
+    } as Ogrenci;
+  }
+
+  function analiz(tur: SinavTuru) {
+    const sinavlar = karneListesiHazirla(demoKarnelerUret(tur, "hedef-tohum", 1), tur, "o1", "t")
+      .map((s, i) => ({ ...s, id: `s${i}` }));
+    return sinavAnalizi(sinavlar[0]);
+  }
+
+  /**
+   * Eğri tablosu uygulamanın ders kartı toplamından yüksek bitebiliyor
+   * (AYT eğrisi 160 net'te 500 puana ulaşır, AYT ders kartları 154 sorudur).
+   * Kırpma olmazsa öğrenciye ulaşılamaz bir hedef gösterilir.
+   */
+  test("hedef net hiçbir zaman sınavın net tavanını aşmaz", () => {
+    for (const tur of ["TYT", "AYT"] as const) {
+      const a = analiz(tur);
+      const tavan = derslerOf(tur).reduce((t, d) => t + d.soruSayisi, 0);
+      for (const puan of [300, 400, 450, 500]) {
+        const kiyas = siniflandir(ogrenci(tur, puan), a);
+        assert.ok(kiyas, `${tur}/${puan} için kiyas null`);
+        assert.ok(
+          kiyas!.hedefNet <= tavan + 1e-9,
+          `${tur} ${puan} puan: hedefNet ${kiyas!.hedefNet} > tavan ${tavan}`,
+        );
+        assert.ok(kiyas!.netAcigi >= 0);
+        assert.ok(Number.isFinite(kiyas!.hedefNet));
+      }
+    }
+  });
+
+  test("ders bazlı hedef toplamı hedef neti verir ve ders tavanını aşmaz", () => {
+    for (const tur of ["TYT", "AYT"] as const) {
+      const a = analiz(tur);
+      const tavan = derslerOf(tur).reduce((t, d) => t + d.soruSayisi, 0);
+      for (const puan of [300, 450, 500]) {
+        const o = ogrenci(tur, puan);
+        const { hedef, ortakVerim } = dersBazliHedefNet(o, a);
+        const toplam = Object.values(hedef).reduce((x, y) => x + y, 0);
+        const beklenen = Math.min(tavan, puandanNet(tur, puan, a.sinav));
+        // Ders başına yuvarlamadan gelen küçük sapma kabul edilir.
+        assert.ok(Math.abs(toplam - beklenen) < 0.05, `${tur}/${puan}: Σ=${toplam} beklenen=${beklenen}`);
+        assert.ok(ortakVerim <= 1, `ortakVerim ${ortakVerim} > 1`);
+        for (const d of a.dersler) {
+          assert.ok(
+            hedef[d.ders.kisaAd] <= d.ders.soruSayisi + 1e-9,
+            `${tur}/${puan}: ${d.ders.kisaAd} hedefi ${hedef[d.ders.kisaAd]} > ${d.ders.soruSayisi}`,
+          );
+        }
+        assert.ok(Object.values(hedef).every((v) => Number.isFinite(v)));
+      }
+    }
   });
 });

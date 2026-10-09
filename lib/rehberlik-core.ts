@@ -138,7 +138,12 @@ export function siniflandir(
   toplu?: KazanimDurumu[],
 ): HedefKiyasi | null {
   if (!ogrenci.hedefPuan) return null;
-  const hedefNet = puandanNet(ogrenci.sinavTuru, ogrenci.hedefPuan, analiz.sinav);
+  // Eğri tablosu, uygulamanın kendi ders kartı toplamından yüksek bir nete
+  // çıkabiliyor (AYT eğrisi 160'da biter, ders kartları 154 soru). Kırpma
+  // olmazsa öğrenciye ulaşılamaz bir hedef gösterilir.
+  const tavan = analiz.dersler.reduce((t, d) => t + d.ders.soruSayisi, 0);
+  const hamHedef = puandanNet(ogrenci.sinavTuru, ogrenci.hedefPuan, analiz.sinav);
+  const hedefNet = tavan > 0 ? Math.min(hamHedef, tavan) : hamHedef;
   const mevcutNet = analiz.toplamNet;
   const netAcigi = Math.max(0, hedefNet - mevcutNet);
 
